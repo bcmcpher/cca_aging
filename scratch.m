@@ -107,3 +107,22 @@ std(beh_lcoeff(beh_lcoeff > ub))
 size((brn_lcoeff > lb) & (brn_lcoeff < ub), 1)
 mean(brn_lcoeff(((brn_lcoeff > lb) & (brn_lcoeff < ub))))
 std(brn_lcoeff(((brn_lcoeff > lb) & (brn_lcoeff < ub))))
+
+%% plot cv factors / error bars
+
+% pull loadings
+x1 = cca.dat1.loading(:, 1);
+y1 = cca.dat1.loading_sd(:, 1);
+x2 = cca.dat2.loading(:, 1);
+y2 = cca.dat2.loading_sd(:, 1);
+
+% plot
+figure;
+subplot(2, 1, 1);
+for ii = 1:size(x1, 1)
+    plot(1:size(x1, 1), x1(1), '.');
+end
+subplot(2, 1, 2);
+for ii = 1:size(x1, 1)
+    plot(1:size(x2, 1), x2(1), '.');
+end

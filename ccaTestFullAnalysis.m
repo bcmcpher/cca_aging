@@ -1,4 +1,4 @@
-function [ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep, Nperm, cv, Nfold, Nrep)
+function [ dat, cca ] = ccaTestFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, cv, Nfold, Nrep)
 %[ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, Nkeep, Nperm);
 %   This function takes brain, behavior, and confound matrices of subj x vars
 %   size, normalizes them, and performs canonical correlation analysis.
@@ -37,6 +37,12 @@ end
 if(~exist('Nrep', 'var') || isempty(Nrep))
     Nrep = 1;
 end
+
+% set option to cross-validate variable loadings to false
+cvl = false;
+
+% force the minimum number of PCA components to become canonical factors for global comparisons
+Nkeep = min([ Nkeep1, Nkeep2 ]);
 
 %% setup confounds matrix
 
@@ -98,7 +104,7 @@ NETd = nets_demean(grot - conf * (pinv(conf) * grot)); % deconfound and demean %
 disp('Performing PCA on network data...');
 
 % SVD reduction
-[ uu1, ss1 ] = nets_svds(NETd, Nkeep);
+[ uu1, ss1 ] = nets_svds(NETd, Nkeep1);
 
 % store network data in the output
 dat.dat1.uu1 = uu1;
@@ -170,7 +176,7 @@ varsdCOV2 = nearestSPD(varsdCOV);
 disp('Performing PCA on behavior data...');
 
 % SVD (eigs actually)
-[ uu, dd ] = eigs(varsdCOV2, Nkeep);
+[ uu, dd ] = eigs(varsdCOV2, Nkeep2);
 
 % deconfound again just to be safe
 uu2 = uu - conf * (pinv(conf) * uu);
@@ -197,7 +203,7 @@ disp('Performing CCA...');
 
 % if cross-validation is requested, create k-fold estimated loadings
 if cv
-    [ cvU, cvV, trR, hoR ] = cvCCA(uu1, uu2, Nfold, Nrep, true);
+    [ cvU, cvV, trR, hoR ] = cvCCA(uu1, uu2, Nfold, Nrep, false);
 end
 
 % save fields to output
@@ -233,7 +239,7 @@ grotBBr = nan(Nkeep, 1);
 % for every CC
 for ii = 1:Nkeep
     
-    if cv
+    if cv && cvl
         
         % for every repeated fold, pull the correlation
         for jj = 1:Nrep
@@ -290,19 +296,19 @@ grotPc = (grotRv ./ sum(grotRv)) * 100;
 if cv
     % just capture mean / sd of folds 
     % - very consistent, not worth storing the whole thing
-    cca.dat1.factor = mean(cvU, 3);
-    cca.dat1.factor_sd = std(cvU, [], 3);
-    cca.dat2.factor = mean(cvV, 3);
-    cca.dat2.factor_sd = std(cvV, [], 3);
+    cca.dat1.factor = mean(cvU, 3, 'omitnan');
+    cca.dat1.factor_sd = std(cvU, [], 3, 'omitnan');
+    cca.dat2.factor = mean(cvV, 3, 'omitnan');
+    cca.dat2.factor_sd = std(cvV, [], 3, 'omitnan');
 end
 
-cca.dat1.loading = mean(grotAAd, 3);
-cca.dat1.loading_sd = std(grotAAd, [], 3);
+cca.dat1.loading = mean(grotAAd, 3, 'omitnan');
+cca.dat1.loading_sd = std(grotAAd, [], 3, 'omitnan');
 cca.dat1.variability = grotAAv;
 cca.dat1.redundancy = grotAAr;
 
-cca.dat2.loading = mean(grotBBd, 3);
-cca.dat2.loading_sd = std(grotBBd, [], 3);
+cca.dat2.loading = mean(grotBBd, 3, 'omitnan');
+cca.dat2.loading_sd = std(grotBBd, [], 3, 'omitnan');
 cca.dat2.variability = grotBBv;
 cca.dat2.reduncancy = grotBBr;
 
@@ -410,11 +416,11 @@ if(~exist('verb', 'var') || isempty(verb))
 end
 
 % fake the number kept by size of input columns
-Nkeep = size(uu1, 2);
+Nkeep = min([ size(uu1, 2) size(uu2, 2) ]);
 
 % preallocate outputs
-cvU = nan(size(uu1, 1), size(uu1, 2), Nrep);
-cvV = nan(size(uu2, 1), size(uu2, 2), Nrep);
+cvU = nan(size(uu1, 1), Nkeep, Nrep);
+cvV = nan(size(uu2, 1), Nkeep, Nrep);
 trR = nan(Nfold, Nkeep, Nrep);
 hoR = nan(Nfold, Nkeep, Nrep);
 

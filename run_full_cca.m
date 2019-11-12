@@ -4,11 +4,11 @@
 %% set up the analysis
 
 % define the number of domains and permutations
-Nkeep = 100;
-Nperm = 10001;
+Nkeep = 10;
+Nperm = 11;
 
 % path to output directory
-outdir = '/N/dc2/projects/lifebid/HCP/Brent/camcan/figs/panels_20190906/';
+outdir = '/N/dc2/projects/lifebid/HCP/Brent/camcan/figs/panels_20191105/';
 
 % load the edge measure
 load('canoncorr_analysis_full_data.mat', 'deg');
@@ -32,13 +32,18 @@ clear vidx
 load('~/hcp_mmp_vol/working/yeoLabs.mat');
  
 % merge age into behavior / confounds?
-varsQconf = [ age, varsQconf ];
-confNames = [ 'Age', confNames ];
+%varsQconf = [ age, varsQconf ];
+%confNames = [ 'Age', confNames ];
 
 % determine the stem of this output
 %stem = 'ho_age_deg_';
 %stem = 'bh_age_deg_';
-stem = 'rg_age_deg_';
+%stem = 'rg_age_deg_';
+
+%stem = 'ho_age_deg_cv_';
+%stem = 'rg_age_deg_cv_';
+
+stem = 'ho_age_deg_pca_';
 
 % is this a full set of edges? 1 = yes; 0 = no
 edge = 0;
@@ -46,8 +51,8 @@ edge = 0;
 %% run the analysis
 
 [ dat, cca ] = ccaFullAnalysis(deg, vars, varsQconf, ...
-                               netNames, varsNames, confNames, ...
-                               varsLabel, Nkeep, Nperm);
+                               netNames, varsNames, confNames, varsLabel, ...
+                               Nkeep, Nperm, true, 5, 1);
 
 %% get all the data / analyses up to this point
 
@@ -223,6 +228,7 @@ else
         line([ .5 size(dmat, 1)+.5 ], [ dlin(ii)+.5 dlin(ii)+.5 ], 'color', 'black', 'LineWidth', .25);
     end
     hold off;
+    print([ outdir stem 'cca_dissimilarity_sorted.eps' ], '-painters', '-depsc'); 
     
     % rescale for brain only
     set(gca, 'XLim', [ 1 376 ], 'YLim', [ 1 376 ]);
@@ -270,4 +276,4 @@ end
 %% save the final output
 
 save([ stem 'data.mat' ], 'dat', 'cca', 'brain', 'behavior', ... 
-     'corrAge', 'crossval', 'dissimilarity', 'projection', 'rr2');
+     'corrAge', 'crossval', 'dissimilarity', 'projection', 'rr2', '-v7.3');

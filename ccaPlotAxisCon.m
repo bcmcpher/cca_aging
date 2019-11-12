@@ -1,4 +1,4 @@
-function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap)
+function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap, ebars)
 %[ fh ] = ccaPlotAxisCon(grotU, grotV, ccf, nage, cmap);
 %   Plot the CCA of a specific factor, using a color mapped age value for
 %   each point.
@@ -18,19 +18,52 @@ function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap)
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
 
+if(~exist('ebars', 'var') || isempty(ebars))
+    ebars = false;
+end
+
 grotU = cca.dat1.factor;
 grotV = cca.dat2.factor;
+
+if isfield(cca.dat1, 'factor_sd')
+    grotUs = cca.dat1.factor_sd;
+    grotVs = cca.dat2.factor_sd;
+else
+    grotUs = zeros(size(cca.dat1.factor));
+    grotVs = zeros(size(cca.dat2.factor));
+end
 
 % plot data
 fh = figure('Position', [ 450 500 750 675 ]); hold on;
 
-% for every observation
+% for every observation, put all the error bars in the background
 for ii = 1:size(grotU, 1)
     
-    % plot the CCA feature, coloring the point be age
-    plot(grotU(ii, ccf), grotV(ii, ccf), 'o', 'MarkerFaceColor', cmap(nage(ii), :), ...
+    % grab the centers and variability of the points
+    xc = grotU(ii, ccf);
+    yc = grotV(ii, ccf);
+    xv = grotUs(ii, ccf);
+    yv = grotVs(ii, ccf);
+    
+    % plot the error bars around the points
+    if ebars
+        plot([ (xc-xv) (xc+xv) ], [ yc yc ], 'color', 'black');
+        plot([ xc xc ], [ (yc-yv) (yc+yv) ], 'color', 'black');
+    end
+    
+end
+
+% for every observation, put all the points on top
+for ii = 1:size(grotU, 1)
+    
+    % grab the centers and variability of the points
+    xc = grotU(ii, ccf);
+    yc = grotV(ii, ccf);
+    
+    % plot the CCA point, coloring the point be age
+    plot(xc, yc, 'o', 'MarkerFaceColor', cmap(nage(ii), :), ...
          'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6);
-     
+
 end
 
 % final plot clean up
