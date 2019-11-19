@@ -1,4 +1,4 @@
-function [ dat, cca ] = ccaTestFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, cv, Nfold, Nrep)
+function [ dat, cca ] = ccaTestFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, cv, ct, Nfold, Nrep)
 %[ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, Nkeep, Nperm);
 %   This function takes brain, behavior, and confound matrices of subj x vars
 %   size, normalizes them, and performs canonical correlation analysis.
@@ -30,12 +30,16 @@ if(~exist('cv', 'var') || isempty(cv))
     cv = false;
 end
 
+if(~exist('ct', 'var') || isempty(ct))
+    ct = 'median';
+end
+
 if(~exist('Nfold', 'var') || isempty(Nfold))
-    Nfold = 10;
+    Nfold = 5;
 end
 
 if(~exist('Nrep', 'var') || isempty(Nrep))
-    Nrep = 1;
+    Nrep = 1000;
 end
 
 % set option to cross-validate variable loadings to false
@@ -236,12 +240,16 @@ grotBBv = nan(Nkeep, 1);
 grotAAr = nan(Nkeep, 1);
 grotBBr = nan(Nkeep, 1);
 
+% dumb extra copies to grab repeats for sd
+dgrotAAd = nan(size(NET, 2), Nkeep, Nrep);
+dgrotBBd = nan(size(varsgrot, 2), Nkeep, Nrep);
+
 % for every CC
 for ii = 1:Nkeep
     
     if cv && cvl
         
-        % for every repeated fold, pull the correlation
+        % for every repeated fold, pull the variable loading
         for jj = 1:Nrep
             % network weights after deconfounding
             grotAAd(:, ii, jj) = corr(cca.dat1.factor(:, ii, jj), NETd(:, 1:size(NET, 2)))';
@@ -251,18 +259,35 @@ for ii = 1:Nkeep
         end
         
         % average across repeats for a single, repeated, cross validated loading
-        tgrotAAd = mean(grotAAd, 3);
-        tgrotBBd = mean(grotBBd, 3);
+        %tgrotAAd = mean(grotAAd, 3);
+        %tgrotBBd = mean(grotBBd, 3);
+        [ mgrotAAd, sgrotAAd ] = ct3d(grotAAd, ct);
+        [ mgrotBBd, sgrotBBd ] = ct3d(grotBBd, ct);
         
-        % variability extracted by each cc data set
-        grotAAv(ii) = mean(tgrotAAd(:, ii).^2, 'omitnan');
-        grotBBv(ii) = mean(tgrotBBd(:, ii).^2, 'omitnan');
+        % variability extracted by each cv cc data set
+        grotAAv(ii) = mean(mgrotAAd(:, ii).^2, 'omitnan');
+        grotBBv(ii) = mean(mgrotBBd(:, ii).^2, 'omitnan');
         
-        % redundancy of each cc component
-        grotAAr(ii) = mean(grotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
-        grotBBr(ii) = mean(grotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+        % redundancy of each cv cc component
+        grotAAr(ii) = mean(mgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+        grotBBr(ii) = mean(mgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
         
     else
+        
+        if ndims(cca.dat1.factor) == 3
+            
+            for jj = 1:Nrep
+                % network weights after deconfounding
+                dgrotAAd(:, ii, jj) = corr(cca.dat1.factor(:, ii, jj), NETd(:, 1:size(NET, 2)))';
+                % only use the first normalized network columns, ignore the additional pca confounds
+                % behavior weights after deconfounding
+                dgrotBBd(:, ii, jj) = corr(cca.dat2.factor(:, ii, jj), varsgrot, 'rows', 'pairwise')';
+            end
+            
+            % only catch the sd from permuted options
+            [ ~, sgrotAAd ] = ct3d(dgrotAAd, ct);
+            [ ~, sgrotBBd ] = ct3d(dgrotBBd, ct);
+        end
         
         % network weights after deconfounding
         grotAAd(:, ii) = corr(cca.dat1.factor(:, ii), NETd(:, 1:size(NET, 2)))';
@@ -296,19 +321,25 @@ grotPc = (grotRv ./ sum(grotRv)) * 100;
 if cv
     % just capture mean / sd of folds 
     % - very consistent, not worth storing the whole thing
-    cca.dat1.factor = mean(cvU, 3, 'omitnan');
-    cca.dat1.factor_sd = std(cvU, [], 3, 'omitnan');
-    cca.dat2.factor = mean(cvV, 3, 'omitnan');
-    cca.dat2.factor_sd = std(cvV, [], 3, 'omitnan');
+    %cca.dat1.factor = median(cvU, 3, 'omitnan');
+    %cca.dat1.factor_sd = std(cvU, [], 3, 'omitnan');
+    %cca.dat2.factor = median(cvV, 3, 'omitnan');
+    %cca.dat2.factor_sd = std(cvV, [], 3, 'omitnan');
+    [ cca.dat1.factor, cca.dat1.factor_sd ] = ct3d(cvU, ct);
+    [ cca.dat2.factor, cca.dat2.factor_sd ] = ct3d(cvV, ct);
 end
 
-cca.dat1.loading = mean(grotAAd, 3, 'omitnan');
-cca.dat1.loading_sd = std(grotAAd, [], 3, 'omitnan');
+%cca.dat1.loading = median(grotAAd, 3, 'omitnan');
+%cca.dat1.loading_sd = std(grotAAd, [], 3, 'omitnan');
+[ cca.dat1.loading, cca.dat1.loading_sd ] = ct3d(grotAAd, ct);
+cca.dat1.loading_sd = sgrotAAd; % override here
 cca.dat1.variability = grotAAv;
 cca.dat1.redundancy = grotAAr;
 
-cca.dat2.loading = mean(grotBBd, 3, 'omitnan');
-cca.dat2.loading_sd = std(grotBBd, [], 3, 'omitnan');
+%cca.dat2.loading = median(grotBBd, 3, 'omitnan');
+%cca.dat2.loading_sd = std(grotBBd, [], 3, 'omitnan');
+[ cca.dat2.loading, cca.dat2.loading_sd ] = ct3d(grotBBd, ct);
+cca.dat2.loading_sd = sgrotBBd; % override here
 cca.dat2.variability = grotBBv;
 cca.dat2.reduncancy = grotBBr;
 
@@ -343,8 +374,8 @@ for ii = 1:Nperm
     if cv
         
         % get cross-validated loadings for each permutation
-        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), Nfold, Nrep);
-        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, Nfold, Nrep);
+        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), Nfold, 100);
+        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, Nfold, 100);
         
         % catch the average across the holdouts - should this be min/max?
         %grottrRp(ii, :, 1) = mean(ttrR1);
@@ -468,5 +499,25 @@ if verb
     disp([ 'Mean / std correlation in training data: ' num2str(mean(trR(:, 1))) ' +/- ' num2str(std(trR(:, 1))) ]);
     disp([ 'Mean / std correlation in hold-out data: ' num2str(mean(hoR(:, 1))) ' +/- ' num2str(std(hoR(:, 1))) ]);
 end
+
+end
+
+%% extimate central tendency / variability across 3rd dimension
+function [ cv, sd ] = ct3d(mat, val)
+% this is a simple wrapper to easily call mean / median values across
+% permutations w/o excessive if cases.
+
+% grab mean / median based on passed argument (median default)
+switch val
+    case {'mean'}
+        cv = mean(mat, 3, 'omitnan');
+    case {'median'}
+        cv = median(mat, 3, 'omitnan');
+    otherwise
+        cv = median(mat, 3, 'omitnan');
+end
+
+% always estimate central tendency
+sd = std(mat, [], 3, 'omitnan');
 
 end
