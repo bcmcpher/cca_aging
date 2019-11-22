@@ -1,7 +1,7 @@
 function [ dmat, dnull ] = ccaDissimilarityPermutations(cca)
 %[ dmat, cmat ] = ccaDissimilarityMatrix(cca);
 %   Create a dissimilarity matrix between all variables in both datasets
-%   used in a CCA.
+%   used in a CCA. Make additional plots based on stored permutations.
 %
 %   INPUTS:
 %       cca - a fit CCA structure

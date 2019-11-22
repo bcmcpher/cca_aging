@@ -438,7 +438,7 @@ end
 function [ cvU, cvV, trR, hoR ] = cvCCA(uu1, uu2, Nfold, Nrep, verb)
 
 if(~exist('Nrep', 'var') || isempty(Nrep))
-    Nrep = 1;
+    Nrep = 100;
 end
 
 % don't print fold stats by defualt
@@ -521,3 +521,40 @@ end
 sd = std(mat, [], 3, 'omitnan');
 
 end
+
+% %% validation of sequential estimates of mean / var / sd
+% 
+% % split a long vector into n parts
+% %x1 = randi(100, 10, 1);
+% %x2 = randi(100, 10, 1);
+% x1 = [ 2; 4; 6; 8; 9; 10; 6; 2; 3; 7 ];
+% x2 = [ 1; 3; 5; 7; 4; 6; 4; 4; 9; 2 ];
+% 
+% % the means are the same
+% full_mean = mean([ x1; x2 ]);
+% full_std = std([ x1; x2 ], 1);
+% full_var = var([ x1; x2 ], 1);
+% 
+% % would initialize as empty
+% a_n = size(x1, 1);
+% a_mean = mean(x1, 'omitnan');
+% a_var = var(x1, 1, 'omitnan');
+% 
+% % would be the first batch
+% b_n = size(x2, 1);
+% b_mean = mean(x2, 'omitnan');
+% b_var = var(x2, 1, 'omitnan');
+% 
+% % compute the combination
+% c_n = a_n + b_n;
+% c_mean = ((a_mean .* a_n) + (b_mean .* b_n)) ./ c_n;
+% c_var = (((a_n .* a_var) + (b_n .* b_var)) ./ c_n) + ((a_n .* b_n) .* ((b_mean - a_mean) ./ c_n)^2);
+% c_std = sqrt(c_var);
+% 
+% % not boolean precise, but display precision precise
+% [ full_mean c_mean full_mean == c_mean ]
+% [ full_var c_var full_var == c_var ]
+% [ full_std c_std full_std == c_std ]
+% 
+% % update a to be c, next block becomes b 
+% % ad nauseum

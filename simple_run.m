@@ -37,9 +37,12 @@ stem = 'ho_age_';
 
 %% run the cv cca
 
+% 38, 40; % max corr w/ age
+% 57, 48; % min fano factor
+
 [ dat, cca ] = ccaTestFullAnalysis(deg, vars, varsQconf, ...
                                    netNames, varsNames, confNames, varsLabel, ...
-                                   Nkeep, Nkeep, Nperm, true, 'mean', 5, 1000);
+                                   38, 40, Nperm, true, 'median', 5, 1000);
 
 %% get corr with age
 
@@ -48,7 +51,7 @@ stem = 'ho_age_';
 
 %% plot of the main axis
 
-ccaPlotAxisCon(cca, 1, age, parula(88));
+ccaPlotAxisCon(cca, 1, age, parula(88), true);
 %print([ outdir stem 'test_cca1_finding.eps' ], '-painters', '-depsc');
 
 ccaPlotAxisCon(cca, 2, age, parula(88));

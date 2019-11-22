@@ -8,14 +8,14 @@ function [ hcor, se, pval ] = ccaCrossvalidate(dat, prop, Nperm)
 %
 %   INTPUTS:
 %       dat   - preprocessed data object from CCA
-%       %   uu1   - first normalized data set
-%       %   uu2   - second normalized data set
 %       prop  - the proportion of data to split and validate with
 %       Nperm - the number of permutations to run on during crossvalidation
 %   OUTPUTS:
 %       hcor - the crossvalidated canonical correlation
 %       se   - the crossvalidated standard error of each canonical correlation
 %       pval - the crossvalidated p-value of each canonical correlation
+%
+% Probably deprecated b/c of internal crossvalidation procedure
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %

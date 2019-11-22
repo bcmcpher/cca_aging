@@ -1,4 +1,4 @@
-function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, dat, outpath)
+function [ out, dat, cca ] = pcaPermRepeats(pca1, pca2, rep, dat, outpath)
 %pcaParamSweep(pca1, pca2); 
 %   simple function to parallelize iterations of pca pairs for parameter
 %   tuning correlation b/w data, w/ age, and testing dissimilarity.
@@ -43,7 +43,10 @@ load(dat);
 %confNames = [ 'Age', confNames ];
 
 % parse output name from pca sweeps
-stem = sprintf('pca_brain_%03d_behavior_%03d_test.mat', pca1, pca2);
+stem = sprintf('pca_brain_%03d_behavior_%03d_10k_rep%02d.mat', pca1, pca2, rep);
+
+% randomize seeds
+rng('shuffle');
 
 %% run the iteration
 

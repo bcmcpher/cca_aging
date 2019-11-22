@@ -13,6 +13,9 @@ function [ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, c
 %       confNames - reg x 1 cell array of confound variable labels
 %       Nkeep - number of PCA components / CCA dimensions to use
 %       Nperm - number of permutations for bootstrapping null hypothesis
+%	cv    - true / [false]; perform Nfold crossvalidation on loadings
+%	Nfold - the number of folds to perform in crossvalidation [default=10]
+%	Nrep  - the number of times to repeat the Nfold cv process before averaging [default=1]
 %   OUTPUTS:
 %       dat - any normalized / PCA data stored for each data set
 %       cca - all CCA component values of interest for reporting or plotting
