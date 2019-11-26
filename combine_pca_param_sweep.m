@@ -218,3 +218,20 @@ end
 fclose(fileID);
 
 clear ii jj fileID
+
+%% check dissimilarity
+
+[ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, netNames, varsNames, confNames, varsLabel, 38, 40, 0, 5, 1000);
+
+dmat1 = ccaDissimilarityMatrix(cca);
+dmat2 = ccaDissimilarityMatrix(cc2);
+
+figure('Position', [ 225 375 1150 450 ]);
+subplot(1, 2, 1);
+imagesc(dmat1); axis equal; axis square; axis tight;
+colorbar; caxis([ 0 1 ]); 
+set(gca, 'XTick', [], 'YTick', []);
+subplot(1, 2, 2);
+imagesc(dmat2); axis equal; axis square; axis tight;
+colorbar; caxis([ 0 1 ]); 
+set(gca, 'XTick', [], 'YTick', []);

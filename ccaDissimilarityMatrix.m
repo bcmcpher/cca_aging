@@ -73,3 +73,20 @@ end
 
 end
 
+% for ii = 1:size(xy, 1)
+%     
+%     % find values - correlation and dissimilarity; others?
+%     dval1 = 1 - abs(corr(z1(xy(ii, 1), :)', z1(xy(ii, 2), :)'));
+%     dval2 = 1 - abs(corr(z2(xy(ii, 1), :)', z2(xy(ii, 2), :)'));
+%     
+%     % store in matrices
+%     dmat1(xy(ii, 1), xy(ii, 2)) = dval1;
+%     dmat1(xy(ii, 2), xy(ii, 1)) = dval1;
+%     dmat2(xy(ii, 1), xy(ii, 2)) = dval2;
+%     dmat2(xy(ii, 2), xy(ii, 1)) = dval2;
+%     
+% end
+% 
+% figure; 
+% subplot(1, 2, 1); imagesc(dmat1); axis equal; axis square; axis tight; colorbar; caxis([ 0 1 ]);
+% subplot(1, 2, 2); imagesc(dmat2); axis equal; axis square; axis tight; colorbar; caxis([ 0 1 ]);
