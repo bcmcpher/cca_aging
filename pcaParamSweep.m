@@ -1,4 +1,4 @@
-function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, dat, outpath)
+function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, rep, dat, outpath)
 %pcaParamSweep(pca1, pca2); 
 %   simple function to parallelize iterations of pca pairs for parameter
 %   tuning correlation b/w data, w/ age, and testing dissimilarity.
@@ -34,6 +34,7 @@ function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, dat, outpath)
 
 pca1 = str2num(pca1);
 pca2 = str2num(pca2);
+rep = str2num(rep);
 
 % load the whole workspace
 load(dat);
@@ -43,7 +44,7 @@ load(dat);
 %confNames = [ 'Age', confNames ];
 
 % parse output name from pca sweeps
-stem = sprintf('pca_brain_%03d_behavior_%03d_test.mat', pca1, pca2);
+stem = sprintf('pca_brain_%03d_behavior_%03d_10k_rep%04d.mat', pca1, pca2, rep);
 
 %% run the iteration
 
@@ -51,9 +52,9 @@ stem = sprintf('pca_brain_%03d_behavior_%03d_test.mat', pca1, pca2);
 out = nan(4, 2);
 
 % run the cca for the parameter vals
-[ dat, cca ] = ccaTestFullAnalysis(deg, vars, varsQconf, ...
+[ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, ...
                                    netNames, varsNames, confNames, varsLabel, ...
-                                   pca1, pca2, 2, true, 'median', 5, 10000);
+                                   pca1, pca2, 0, 5, 10000);
 
 % boostrap mean / sd of the correlation with age
 [ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 1000);
@@ -72,40 +73,22 @@ out(4, 1) = mean([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);
 out(4, 2) = std([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);
 
 % create dissimilarity b/w all variables in CCA
-dmat = ccaDissimilarityMatrix(cca);
-
-% sort the brain regions
-%[ y7_lab, y7_brn ] = sort(yeoLabs.yeo7);
+dmat1 = ccaDissimilarityMatrix(cca);
+dmat2 = ccaDissimilarityMatrix(cc2);
 
 % get index of sorted behaviors
 svar = regexprep(dat.dat2.names', '_.*', '');
 svar = regexprep(svar, 'hint', 'comp');
 svar{1} = 'comp'; % replace the first dumb label
 [ ~, ~, ib ] = unique(svar);
-%[ si, sv ] = sort(ib);
 
-%y7_axis = [ y7_brn; sv+376 ];
-
-% lines splitting domains
-%dlin = [ find(diff(y7_lab)); find(diff(si))+376 ];
-%dlin = sort([ dlin; 376 ]);
-
-mdDat = fnModuleDensity(dmat, [ yeoLabs.yeo7; ib+10 ], 'mean');
-
-% figure; imagesc(mdDat);
-% axis square; axis equal; axis tight; colorbar; caxis([ 0 1 ]);
-% title('Dissimiliarity Between Brain and Task Domains');
-% mdLabs = [ yeoLabs.yeo7Names'; S ];
-% set(gca, 'XTick', 1:size(mdDat, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
-%     'YTick', 1:size(mdDat, 1), 'YTickLabels', mdLabs);
-% set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0.5 1 ]);
-% print([ outdir 'figs/' stem '_dissimilarity.eps' ], '-painters', '-depsc');
-% close all; clc
+mdDat1 = fnModuleDensity(dmat1, [ yeoLabs.yeo7; ib+10 ], 'mean');
+mdDat2 = fnModuleDensity(dmat2, [ yeoLabs.yeo7; ib+10 ], 'mean');
 
 %% save the data down
 
 %save([ outdir stem '.mat' ], 'dat', 'cca', 'out', 'dmat', 'mdDat');
-save([ outpath stem ], 'dat', 'cca', 'out', 'dmat', 'mdDat');
+save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', 'mdDat2');
 
 disp('Done.');
 

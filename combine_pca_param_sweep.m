@@ -221,17 +221,49 @@ clear ii jj fileID
 
 %% check dissimilarity
 
-[ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, netNames, varsNames, confNames, varsLabel, 38, 40, 0, 5, 1000);
+% build the indices to sort the modules in the final panel
+[ y7_lab, y7_brn ] = sort(yeoLabs.yeo7);
+svar = regexprep(dat.dat2.names', '_.*', '');
+svar = regexprep(svar, 'hint', 'comp');
+svar{1} = 'comp'; % replace the first dumb label
+[ S, ~, ib ] = unique(svar);
+mdLabs = [ yeoLabs.yeo7Names'; S ];
 
+% run the analysis
+[ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, netNames, varsNames, confNames, varsLabel, 38, 40, 0, 5, 10000);
+
+% build the dissimilarity
 dmat1 = ccaDissimilarityMatrix(cca);
 dmat2 = ccaDissimilarityMatrix(cc2);
 
-figure('Position', [ 225 375 1150 450 ]);
-subplot(1, 2, 1);
+% create the modules
+mdDat1 = fnModuleDensity(dmat1, [ yeoLabs.yeo7; ib+10 ], 'mean');
+mdDat2 = fnModuleDensity(dmat2, [ yeoLabs.yeo7; ib+10 ], 'mean');
+
+figure('Position', [ 525 400 900 700 ]);
+
+subplot(2, 2, 1);
 imagesc(dmat1); axis equal; axis square; axis tight;
-colorbar; caxis([ 0 1 ]); 
+colorbar; caxis([ 0 .1 ]); 
 set(gca, 'XTick', [], 'YTick', []);
-subplot(1, 2, 2);
+title({'Crossvalidated Variable Loadings', '(Has error bars)'});
+
+subplot(2, 2, 2);
 imagesc(dmat2); axis equal; axis square; axis tight;
 colorbar; caxis([ 0 1 ]); 
 set(gca, 'XTick', [], 'YTick', []);
+title({'Loadings from Crossvalidated Factors', '(Has no error bars)'});
+
+subplot(2, 2, 3); imagesc(mdDat1);
+axis square; axis equal; axis tight; colorbar; caxis([ 0 1 ]);
+title({'Dissimiliarity Between Brain and Task Domains', '(Has error bars)'});
+set(gca, 'XTick', 1:size(mdDat1, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
+    'YTick', 1:size(mdDat1, 1), 'YTickLabels', mdLabs);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 0.5 ]);
+
+subplot(2, 2, 4); imagesc(mdDat2);
+axis square; axis equal; axis tight; colorbar; caxis([ 0 1 ]);
+title({'Dissimiliarity Between Brain and Task Domains', '(Has no error bars)'});
+set(gca, 'XTick', 1:size(mdDat2, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
+    'YTick', 1:size(mdDat2, 1), 'YTickLabels', mdLabs);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0.5 1 ]);

@@ -211,6 +211,8 @@ disp('Performing CCA...');
 % perform the full analysis
 [ A, B, grotR, grotU, grotV, grotstats ] = canoncorr(uu1, uu2);
 
+disp('Cross-validating CCA estimates...');
+
 % create repeated k-fold estimated loadings
 [ cvU, cvV, trR, hoR, grotAAd, grotBBd, ...
   grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep);
@@ -348,8 +350,8 @@ if Nperm >= 2
     for ii = 1:Nperm
         
         % get cross-validated loadings for each permutation
-        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), Nfold, 1000);
-        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, Nfold, 1000);
+        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), Nfold, 100);
+        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, Nfold, 100);
         
         % catch the average across the holdouts - should this be min/max?
         grotRp(ii, :, 1) = mean(mean(thoR1, 3));
