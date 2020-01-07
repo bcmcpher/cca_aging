@@ -44,6 +44,11 @@ stem = 'ho_age_';
                                    netNames, varsNames, confNames, varsLabel, ...
                                    38, 40, Nperm, true, 'median', 5, 1000);
 
+% just make dat for loaded structure
+[ dat, ~ ] = ccaTestFullAnalysis(deg, vars, varsQconf, ...
+                                   netNames, varsNames, confNames, varsLabel, ...
+                                   38, 40, 2, true, 'median', 2, 10);
+                               
 %% get corr with age
 
 [ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 1000);
@@ -109,6 +114,18 @@ set(gca, 'XTick', 1:size(mdDat, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation',
     'YTick', 1:size(mdDat, 1), 'YTickLabels', mdLabs);
 %print([ outdir stem 'cca_dissimilarity_modules.eps' ], '-painters', '-depsc');
 
-set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0.5 1 ]);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 0.25 ]);
 %print([ outdir stem 'cca_dissimilarity_brnxbeh_modules.eps' ], '-painters', '-depsc');
 %close all;
+
+%% module significance
+
+% brain / behavior group labels for modules
+grp = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 ];
+
+% run simple significance fxn
+[ Mden, fh, Mprm ] = fnModuleSignificance(dmat, [ yeoLabs.yeo7; ib+10 ], grp, 10000);
+
+% use bootstrap test to draw significance
+%[ Mden, fh, Mprm ] = fnModulePermutationSignificance(dmat, ???, [ yeoLabs.yeo7; ib+10 ], grp);
+% second input should be 3d mat of null dissimilarity matix?

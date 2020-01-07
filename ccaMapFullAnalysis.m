@@ -423,7 +423,7 @@ end
 function [ cvU, cvV, trR, hoR, grotAAd, grotBBd, grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep)
 
 % the number of repeats to do per mapped estimate - always at least 1000 reps passed
-Nmap = 100;
+Nmap = 5000;
 
 % determine the number of map estimates to make
 Nsplit = Nrep / Nmap;

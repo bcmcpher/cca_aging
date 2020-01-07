@@ -44,10 +44,10 @@ load(dat);
 %confNames = [ 'Age', confNames ];
 
 % parse output name from pca sweeps
-stem = sprintf('pca_brain_%03d_behavior_%03d_100k_rep%02d.mat', pca1, pca2, rep);
+stem = sprintf('pca_brain_%03d_behavior_%03d_250k_rep%02d.mat', pca1, pca2, rep);
 
 % randomize seeds
-rng('shuffle');
+rng(seed(rep));
 
 %% run the iteration
 
@@ -56,8 +56,8 @@ out = nan(4, 2);
 
 % run the cca for the parameter vals
 [ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, ...
-                                   netNames, varsNames, confNames, varsLabel, ...
-                                   pca1, pca2, 0, 5, 100000);
+                                       netNames, varsNames, confNames, varsLabel, ...
+                                       pca1, pca2, 0, 5, 250000);
 
 % boostrap mean / sd of the correlation with age
 [ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 1000);
@@ -79,9 +79,6 @@ out(4, 2) = std([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);
 dmat1 = ccaDissimilarityMatrix(cca);
 dmat2 = ccaDissimilarityMatrix(cc2);
 
-% sort the brain regions
-%[ y7_lab, y7_brn ] = sort(yeoLabs.yeo7);
-
 % get index of sorted behaviors
 svar = regexprep(dat.dat2.names', '_.*', '');
 svar = regexprep(svar, 'hint', 'comp');
@@ -100,4 +97,3 @@ save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', '
 disp('Done.');
 
 end
-

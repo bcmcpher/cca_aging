@@ -39,6 +39,9 @@ rep = str2num(rep);
 % load the whole workspace
 load(dat);
 
+% randomly set the seed differently for each repeat
+rng(seed(rep));
+
 % merge age into confounds?
 %varsQconf = [ age, varsQconf ];
 %confNames = [ 'Age', confNames ];
@@ -93,4 +96,3 @@ save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', '
 disp('Done.');
 
 end
-
