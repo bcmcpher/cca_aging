@@ -3,7 +3,7 @@
 % all the relevant objects need to be loaded already
 
 % pick the number of repeated CVs
-nCV = 25000;
+nCV = 250000;
 nRp = 5;
 
 % preallocate the model fits
