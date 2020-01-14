@@ -1,4 +1,4 @@
-function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, rep, dat, outpath)
+function [ out, dat, cca, cc2 ] = pcaParamSweep(pca1, pca2, rep, dat, outpath)
 %pcaParamSweep(pca1, pca2); 
 %   simple function to parallelize iterations of pca pairs for parameter
 %   tuning correlation b/w data, w/ age, and testing dissimilarity.
@@ -47,7 +47,7 @@ rng(seed(rep));
 %confNames = [ 'Age', confNames ];
 
 % parse output name from pca sweeps
-stem = sprintf('pca_brain_%03d_behavior_%03d_10k_rep%04d.mat', pca1, pca2, rep);
+stem = sprintf('pca_brain_%03d_behavior_%03d_250k_rep%04d.mat', pca1, pca2, rep);
 
 %% run the iteration
 
@@ -56,11 +56,11 @@ out = nan(4, 2);
 
 % run the cca for the parameter vals
 [ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, ...
-                                   netNames, varsNames, confNames, varsLabel, ...
-                                   pca1, pca2, 0, 5, 10000);
+                                       netNames, varsNames, confNames, varsLabel, ...
+                                       pca1, pca2, 10000, 5, 250000);
 
 % boostrap mean / sd of the correlation with age
-[ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 1000);
+[ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 10000);
 
 % pull the mean / sd of the dataset correlation
 cdat = squeeze(cca.cca.hocorrs(:, 1, :));

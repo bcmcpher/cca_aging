@@ -47,6 +47,7 @@ if Nrep < 1000
     Nrep = 1000;
 end
 
+% if to few permutations are passed, skip them
 if Nperm < 2
     disp('Bootstrap permutation testing disabled.');
 end
@@ -341,30 +342,31 @@ if Nperm >= 2
     grotAr = zeros(Nperm, Nkeep);
     grotBr = zeros(Nperm, Nkeep);
     
-    % predefine permutation sets
-    PAPset = palm_quickperms([], ones(size(varsgrot, 1), 1), Nperm);
+    % predefine permutation sets 
+    % add 1 to Nperm b/c the first one isn't random
+    PAPset = palm_quickperms([], ones(size(varsgrot, 1), 1), Nperm+1);
     
     disp('Reconstructing loadings from permutations...');
     
-    % for every permutation
-    for ii = 1:Nperm
+    % for every permutation, skipping the first, non-random entry
+    for ii = 2:Nperm+1
         
         % get cross-validated loadings for each permutation
-        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), Nfold, 100);
-        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, Nfold, 100);
+        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), NETd, varsgrot, Nfold, 5000);
+        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, NETd, varsgrot, Nfold, 5000);
         
         % catch the average across the holdouts - should this be min/max?
-        grotRp(ii, :, 1) = mean(mean(thoR1, 3));
-        grotRp(ii, :, 2) = mean(mean(thoR2, 3));
+        grotRp(ii, :, 1) = mean(mean(thoR1.mn), 'omitnan');
+        grotRp(ii, :, 2) = mean(mean(thoR2.mn), 'omitnan');
         
         % for every cc
         for jj = 1:Nkeep
             
             % network weights after deconfounding
-            grotAtr(ii, jj, :) = corr(grotUr(:, jj), NETd(:, 1:size(NET, 2)))';
+            grotAtr(ii, jj, :) = corr(grotUr.mn(:, jj), NETd(:, 1:size(NET, 2)))';
             
             % behavior weights after deconfounding
-            grotBtr(ii, jj, :) = corr(grotVr(:, jj), varsgrot, 'rows', 'pairwise')';
+            grotBtr(ii, jj, :) = corr(grotVr.mn(:, jj), varsgrot, 'rows', 'pairwise')';
             
             % store variability captured in A / B
             grotAv(ii, jj) = mean(grotAtr(ii, jj, :) .^ 2, 'omitnan');
@@ -422,11 +424,16 @@ end
 %% cross-validation function for compartmentalization
 function [ cvU, cvV, trR, hoR, grotAAd, grotBBd, grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep)
 
-% the number of repeats to do per mapped estimate - always at least 1000 reps passed
+% the number of repeats to do per mapped estimate - always at least 5000 reps passed
 Nmap = 5000;
 
 % determine the number of map estimates to make
 Nsplit = Nrep / Nmap;
+
+% always set loop to 1, even if the size is less
+if Nsplit < 1
+    Nsplit = 1;
+end
 
 % fake the number kept by size of input columns
 Nkeep = min([ size(uu1, 2) size(uu2, 2) ]);
