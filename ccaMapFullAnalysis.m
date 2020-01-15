@@ -207,16 +207,48 @@ disp('Storing preprocessed data...');
 
 %% run the analysis
 
-disp('Performing CCA...');
+disp('Performing CCA on all observations...');
 
 % perform the full analysis
 [ A, B, grotR, grotU, grotV, grotstats ] = canoncorr(uu1, uu2);
 
-disp('Cross-validating CCA estimates...');
+% get the full analysis loadings, variability, sign, etc.
+fgrotAAd = nan(size(NET, 2), Nkeep);
+fgrotBBd = nan(size(varsgrot, 2), Nkeep);
+fgrotAAp = nan(size(NET, 2), Nkeep);
+fgrotBBp = nan(size(varsgrot, 2), Nkeep);
+fgrotAAv = nan(Nkeep, 1);
+fgrotBBv = nan(Nkeep, 1);
+fgrotAAr = nan(Nkeep, 1);
+fgrotBBr = nan(Nkeep, 1);
+fgrotR = nan(Nkeep, 1);
 
-% create repeated k-fold estimated loadings
-[ cvU, cvV, trR, hoR, grotAAd, grotBBd, ...
-  grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep);
+% for every CC
+for ii = 1:Nkeep
+        
+        % network weights after deconfounding
+        fgrotAAd(:, ii) = corr(grotU(:, ii), NETd(:, 1:size(NET, 2)))';
+        fgrotAAp(:, ii) = fgrotAAd(:, ii) > 0;
+        % only use the first normalized network columns, ignore the additional pca confounds
+        
+        % behavior weights after deconfounding
+        fgrotBBd(:, ii) = corr(grotV(:, ii), varsgrot, 'rows', 'pairwise')';
+        fgrotBBp(:, ii) = fgrotBBd(:, ii) > 0;
+        
+        % pull observed correlation
+        fgrotR(ii) = corr(grotU(:, ii), grotV(:, ii));
+        
+        % variability extracted by each cc data set
+        fgrotAAv(ii) = mean(fgrotAAd(:, ii).^2, 'omitnan');
+        fgrotBBv(ii) = mean(fgrotBBd(:, ii).^2, 'omitnan');
+        
+        % redundancy of each cc component
+        fgrotAAr(ii) = mean(fgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+        fgrotBBr(ii) = mean(fgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+
+end
+
+clear ii
 
 % save full data cca fields
 cca.full.A = A;
@@ -226,29 +258,48 @@ cca.full.grotU = grotU;
 cca.full.grotV = grotV;
 cca.full.stats = grotstats;
 
+% save full recovered values
+cca.full.fgrotR = fgrotR;
+
+cca.full.fgrotAAd = fgrotAAd;
+cca.full.fgrotAAp = fgrotAAp;
+cca.full.fgrotAAv = fgrotAAv;
+cca.full.fgrotAAr = fgrotAAr;
+
+cca.full.fgrotBBd = fgrotBBd;
+cca.full.fgrotBBp = fgrotBBp;
+cca.full.fgrotBBv = fgrotBBv;
+cca.full.fgrotBBr = fgrotBBr;
+
+disp('Cross-validating CCA estimates...');
+
+% create repeated k-fold estimated loadings
+[ cvU, cvV, trR, hoR, grotAAd, grotBBd, ...
+  grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep);
+
 % save cross-validated fields to output
 cca.dat1.factor = cvU.mn;
-cca.dat1.factor_sd = cvU.std;
+cca.dat1.factor_se = cvU.std ./ sqrt(Nrep);
 cca.dat1.loading = grotAAd.mn;
-cca.dat1.loading_sd = grotAAd.std;
+cca.dat1.loading_se = grotAAd.std ./ sqrt(Nrep);
 cca.dat1.variability = grotAAv.mn;
-cca.dat1.variability_sd = grotAAv.std;
+cca.dat1.variability_se = grotAAv.std ./ sqrt(Nrep);
 cca.dat1.redundancy = grotAAr.mn;
-cca.dat1.redundancy_sd = grotAAr.std;
+cca.dat1.redundancy_se = grotAAr.std ./ sqrt(Nrep);
 
 cca.dat2.factor = cvV.mn;
-cca.dat2.factor_sd = cvV.std;
+cca.dat2.factor_se = cvV.std ./ sqrt(Nrep);
 cca.dat2.loading = grotBBd.mn;
-cca.dat2.loading_sd = grotBBd.std;
+cca.dat2.loading_se = grotBBd.std ./ sqrt(Nrep);
 cca.dat2.variability = grotBBv.mn;
-cca.dat2.variability_sd = grotBBv.std;
+cca.dat2.variability_se = grotBBv.std ./ sqrt(Nrep);
 cca.dat2.redundancy = grotBBr.mn;
-cca.dat2.redundancy_sd = grotBBr.std;
+cca.dat2.redundancy_se = grotBBr.std ./ sqrt(Nrep);
 
 cca.cca.trcorrs = trR.mn;
-cca.cca.trcorrs_sd = trR.std;
+cca.cca.trcorrs_se = trR.std ./ sqrt(Nrep);
 cca.cca.hocorrs = hoR.mn;
-cca.cca.hocorrs_sd = hoR.std;
+cca.cca.hocorrs_se = hoR.std ./ sqrt(Nrep);
 
 % proportion of variability accounted for in each CC / percent accounted for in each CC
 cca.cca.trRv = mean(trR.mn, 'omitnan') .^ 2;
@@ -256,20 +307,27 @@ cca.cca.trPc = (cca.cca.trRv ./ sum(cca.cca.trRv)) * 100;
 cca.cca.hoRv = mean(hoR.mn, 'omitnan') .^ 2;
 cca.cca.hoPc = (cca.cca.hoRv ./ sum(cca.cca.hoRv)) * 100;
 
+% grab the permutation parameters
+cca.param.Nkeep1 = Nkeep1;
+cca.param.Nkeep2 = Nkeep2;
+cca.param.Nperm = Nperm;
+cca.param.Nfold = Nfold;
+cca.param.Nrep = Nrep;
+
 %% extract parameters back to raw measures
 % this rebuilds loadings from ct of cv factors, not ct of loadings w/in cv
 % should be equivalent: wasn't the first time, is now?
 % if it is equivalent, drop this part
 
-disp('Converting crossvalidated CCA loadings back to raw network / behavior measures...');
+disp('Converting cross-validated CCA factors back to raw network / behavior measures...');
 
 % preallocate 
 cgrotAAd = nan(size(NET, 2), Nkeep);
 cgrotBBd = nan(size(varsgrot, 2), Nkeep);
-% cgrotAAv = nan(Nkeep, 1);
-% cgrotBBv = nan(Nkeep, 1);
-% cgrotAAr = nan(Nkeep, 1);
-% cgrotBBr = nan(Nkeep, 1);
+cgrotAAv = nan(Nkeep, 1);
+cgrotBBv = nan(Nkeep, 1);
+cgrotAAr = nan(Nkeep, 1);
+cgrotBBr = nan(Nkeep, 1);
 cgrotR = nan(Nkeep, 1);
 
 % for every CC
@@ -285,13 +343,13 @@ for ii = 1:Nkeep
         % pull observed correlation
         cgrotR(ii) = corr(cca.dat1.factor(:, ii), cca.dat2.factor(:, ii));
         
-%         % variability extracted by each cc data set
-%         cgrotAAv(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan');
-%         cgrotBBv(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan');
-%         
-%         % redundancy of each cc component
-%         cgrotAAr(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
-%         cgrotBBr(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+        % variability extracted by each cc data set
+        cgrotAAv(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan');
+        cgrotBBv(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan');
+        
+        % redundancy of each cc component
+        cgrotAAr(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
+        cgrotBBr(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
 
 end
 
@@ -308,22 +366,22 @@ cgrotPc = (cgrotRv ./ sum(cgrotRv)) * 100;
 
 % save fields to output
 cc2.dat1.factor = cvU.mn;
-cc2.dat1.factor_sd = cvU.std;
-cc2.dat2.factor = cvV.mn;
-cc2.dat2.factor_sd = cvV.std;
+cc2.dat1.factor_se = cvU.std ./ sqrt(Nrep);
 
 cc2.dat1.loading = cgrotAAd;
-% cc2.dat1.variability = cgrotAAv;
-% cc2.dat1.redundancy = cgrotAAr;
+cc2.dat1.variability = cgrotAAv;
+cc2.dat1.redundancy = cgrotAAr;
+
+cc2.dat2.factor = cvV.mn;
+cc2.dat2.factor_se = cvV.std ./ sqrt(Nrep);
 
 cc2.dat2.loading = cgrotBBd;
-% cc2.dat2.variability = cgrotBBv;
-% cc2.dat2.reduncancy = cgrotBBr;
+cc2.dat2.variability = cgrotBBv;
+cc2.dat2.reduncancy = cgrotBBr;
 
 cc2.cca.varExplained = cgrotRv;
 cc2.cca.percentExp = cgrotPc;
 
-% FIGURE OUT HOW TO TURN ON / OFF THE PERMUTATION TESTING
 %% CCA permutation testing for parameters
 
 if Nperm >= 2

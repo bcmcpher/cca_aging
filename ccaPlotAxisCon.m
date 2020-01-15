@@ -25,13 +25,15 @@ end
 grotU = cca.dat1.factor;
 grotV = cca.dat2.factor;
 
-if isfield(cca.dat1, 'factor_sd')
-    grotUs = cca.dat1.factor_sd;
-    grotVs = cca.dat2.factor_sd;
+if isfield(cca.dat1, 'factor_se')
+    grotUs = cca.dat1.factor_se;
+    grotVs = cca.dat2.factor_se;
 else
     grotUs = zeros(size(cca.dat1.factor));
     grotVs = zeros(size(cca.dat2.factor));
 end
+
+Nrep = cca.param.Nrep;
 
 % plot data
 fh = figure('Position', [ 450 500 750 675 ]); hold on;
@@ -42,8 +44,8 @@ for ii = 1:size(grotU, 1)
     % grab the centers and variability of the points
     xc = grotU(ii, ccf);
     yc = grotV(ii, ccf);
-    xv = grotUs(ii, ccf);
-    yv = grotVs(ii, ccf);
+    xv = 2 * grotUs(ii, ccf);
+    yv = 2 * grotVs(ii, ccf);
     
     % plot the error bars around the points
     if ebars
