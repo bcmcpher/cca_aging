@@ -91,7 +91,7 @@ mdDat2 = fnModuleDensity(dmat2, [ yeoLabs.yeo7; ib+10 ], 'mean');
 %% save the data down
 
 %save([ outdir stem '.mat' ], 'dat', 'cca', 'out', 'dmat', 'mdDat');
-save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', 'mdDat2');
+save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', 'mdDat2', '-v7.3');
 
 disp('Done.');
 
