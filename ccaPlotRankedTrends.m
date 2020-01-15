@@ -68,7 +68,7 @@ wght = vals(:, ccf);
 Nperm = 100000;
 
 % null distribtuion of average weight to pull from
-ndist = nan(10000, 1);
+ndist = nan(Nperm, 1);
 for ii = 1:Nperm
     rvals = randsample(wght, size(wght, 1), 'true');
     ndist(ii) = mean(rvals);
@@ -88,8 +88,8 @@ sig = wght < mnmxpct(1) | wght > mnmxpct(2);
 
 % autodetect the low / high points to plot text
 mnmx = minmax(wght');
-mnb = floor(mnmx(1)*10)/10;
-%mxb = ceil(mnmx(2)*10)/10;
+mnb = mnmx(1)*1.15;
+%mxb = mnmx(1)*1.15;
 
 disp([ 'The lower / upper bounds of the values are: ' num2str(mnmx) ]);
 
