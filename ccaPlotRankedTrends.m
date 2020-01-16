@@ -32,13 +32,13 @@ function [ wght, mnmxpct, fh ] = ccaPlotRankedTrends(dat, cca, age, mod, type, c
 
 if strcmp(mod, 'brain')
     
+    varLabs = dat.dat1.names;
+    
     if strcmp(type, 'load')
-        varLabs = dat.dat1.names;
         vals = cca.dat1.loading;
     end
     
     if strcmp(type, 'slope')
-        varLabs = dat.dat1.names;
         vals = ccaTrendByDecile(dat.dat1.raw, age);
     end
     
@@ -46,15 +46,15 @@ end
 
 if strcmp(mod, 'behavior')
     
+    varLabs = dat.dat2.label;
+    
     % load behavior data
     if strcmp(type, 'load')
         vals = cca.dat2.loading;
-        varLabs = dat.dat2.label;
     end
     
     if strcmp(type, 'slope')
         vals = ccaTrendByDecile(dat.dat2.nrm, age);
-        varLabs = dat.dat2.label';
     end       
     
 end

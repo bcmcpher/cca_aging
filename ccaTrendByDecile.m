@@ -1,4 +1,4 @@
-function [ lcoeff, lr2 ] = ccaTrendByDecile(data, age)
+function [ lcoeff, lr2, lse ] = ccaTrendByDecile(data, age)
 %[ lcoeff, lr2 ] = ccaTrendByDecile(data, age);
 %   Plot a trend line through the decade split of the data. The function
 %   will return a slope and R^2 value for each variable. The function will
@@ -10,6 +10,7 @@ function [ lcoeff, lr2 ] = ccaTrendByDecile(data, age)
 %   OUTPUTS:
 %       lcoeff - vector of slopes for each variable
 %       lr2    - vector of R^2 values for each variable
+%       lse    - vector of slope standard errors for each variable
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
@@ -26,6 +27,7 @@ abin(8) = abin(8) + 1;
 
 lcoeff = nan(size(data, 2), 1);
 lr2 = nan(size(data, 2), 1);
+lse = nan(size(data, 2), 1);
 
 for ii = 1:size(data, 2)
     
@@ -60,6 +62,7 @@ for ii = 1:size(data, 2)
     % grab the trend
     lcoeff(ii) = z(1);
     lr2(ii) = lm.Rsquared.Ordinary;
+    lse(ii) = lm.Coefficients.SE(2);
 
 end
 
