@@ -19,8 +19,11 @@ dm = n1 + n2 + 2;
 
 %% scale the values better for the plot
 
+% normalize here?
+dat = normScale(mat, 0.35);
+
 % convert from dissimilarity to similarity
-dat = 1 - mat;
+dat = 1 - dat;
 
 % round and flip so more similar == higher number
 %val = round(dat*1000);          % linearly scale
@@ -28,10 +31,18 @@ val = round(dat*1000).^2;       % linearly scale and square - I think this one
 %val = log10(round(dat*100000)); % linearly scale and log
 %val = zscore(dat);               % z-score data - need to figure out negative axes
 
-% threshold by column?
-%vmn  = mean(val(:));
-%vsd = std(val(:));
-%val(val < (vmn + vsd)) = 0;
+% fill in more empty
+val(isnan(val)) = 0;
+
+% % threshold by column
+% mval = mean(val, 2);
+% vval = std(val, 1, 2);
+% for ii = 1:size(val, 1)
+%     tval = val(ii, :);
+%     thresh = mval(ii);% + (.5 * vval(ii));
+%     tval(tval < thresh) = 0;
+%     val(ii, :) = tval;
+% end
 
 % get the total count for spacing between ends
 nsubj = sum(val(:));
@@ -46,8 +57,34 @@ out(1:n2, (n2+2):end-1) = val';
 out(n2+1, dm) = nsubj;
 out(dm, n2+1) = nsubj;
 
-%% write out the csv
+%% write out the json file
 
-dlmwrite([ fname '.csv' ], out, 'delimiter', ',');
+% create the output structure w/ the relevant data correctly formatted
+outobj.matrix = out;
+outobj.respondents = nsubj;
+outobj.emptyStroke = round(nsubj * 0.5);
+
+% make it a json structure
+%outjson = jsonencode(outobj);
+
+% write to file
+savejson('data', outobj, [ fname '.json' ]);
+%dlmwrite([ fname '.csv' ], out, 'delimiter', ',');
+
+end
+
+%% function to scale input between [ 0 1 ]
+
+function [ out ] = normScale(mat, thr)
+
+% pull the min / max
+mn = min(mat(:));
+mx = max(mat(:));
+
+% create the output
+out = (mat - mn) / (mx - mn);
+
+% threshold
+out(out > thr) = nan;
 
 end
