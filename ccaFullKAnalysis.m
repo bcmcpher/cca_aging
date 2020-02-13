@@ -1,5 +1,5 @@
-function [ dat, cca ] = ccaMapNonLinearAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, Nfold, Nrep, ct, kernel, kernelpar, reg)
-%[ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, Nkeep, Nperm);
+function [ dat, cca ] = ccaFullKAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, Nfold, Nrep, ct, kernel, kernelpar, reg)
+%[ dat, cca ] = ccaFullKAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, Nfold, Nrep, ct, kernel, kernelpar, reg);
 %   This function takes brain, behavior, and confound matrices of subj x vars
 %   size, normalizes them, and performs either a linear canonical correlation analysis or a 
 %   kernel based non-linear CCA analysis. If arguments for the non-linear
@@ -57,7 +57,7 @@ if(~exist('ct', 'var') || isempty(ct))
     ct = 'median';
 end
 
-% if nonlinear parameters are not passed
+% if all nonlinear parameters are not passed
 if (~exist('kernel', 'var') && ~exist('kernelpar', 'var') && ~exist('reg', 'var'))
     
     % perform a regular, linear CCA
@@ -100,9 +100,9 @@ end
 % force the minimum number of PCA components to become canonical factors for global comparisons
 Nkeep = min([ Nkeep1, Nkeep2 ]);
 
-% enforce that the input data has the same observations
+% enforce that the input data has the same number of observations
 if size(NET, 1) ~= size(vars, 1)
-    error('Input datasets have a different number of observations.');
+    error('Input datasets have a different number of observations. You cannot perform any CCA analysis between these datasets.');
 end
 
 % pull the number of subjects / variables from inputs
