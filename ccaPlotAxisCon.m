@@ -33,7 +33,7 @@ else
     grotVs = zeros(size(cca.dat2.factor));
 end
 
-Nrep = cca.param.Nrep;
+%Nrep = cca.param.Nrep;
 
 % plot data
 fh = figure('Position', [ 450 500 750 675 ]); hold on;
@@ -69,7 +69,8 @@ for ii = 1:size(grotU, 1)
 end
 
 % final plot clean up
-ccv = corr(grotU(:, ccf), grotV(:, ccf));
+%ccv = corr(grotU(:, ccf), grotV(:, ccf));
+ccv = cca.cca.hocorrs(ccf);
 %ccv = grotRv(ccf);
 title(['Canonical Correlation of Principal Factor ' num2str(ccf) ': ' num2str(ccv)]);
 xlabel('Network Values');
