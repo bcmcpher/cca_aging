@@ -1,4 +1,4 @@
-function [ dat, cca, cc2 ] = ccaMapFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, Nfold, Nrep)
+function [ dat, cca ] = ccaMapFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, varsLabel, Nkeep1, Nkeep2, Nperm, Nfold, Nrep)
 %[ dat, cca ] = ccaFullAnalysis(NET, vars, conf, netsNames, varsNames, confNames, Nkeep, Nperm);
 %   This function takes brain, behavior, and confound matrices of subj x vars
 %   size, normalizes them, and performs canonical correlation analysis.
@@ -314,74 +314,6 @@ cca.param.Nperm = Nperm;
 cca.param.Nfold = Nfold;
 cca.param.Nrep = Nrep;
 
-%% extract parameters back to raw measures
-% this rebuilds loadings from ct of cv factors, not ct of loadings w/in cv
-% should be equivalent: wasn't the first time, is now?
-% if it is equivalent, drop this part
-
-disp('Converting cross-validated CCA factors back to raw network / behavior measures...');
-
-% preallocate 
-cgrotAAd = nan(size(NET, 2), Nkeep);
-cgrotBBd = nan(size(varsgrot, 2), Nkeep);
-cgrotAAv = nan(Nkeep, 1);
-cgrotBBv = nan(Nkeep, 1);
-cgrotAAr = nan(Nkeep, 1);
-cgrotBBr = nan(Nkeep, 1);
-cgrotR = nan(Nkeep, 1);
-
-% for every CC
-for ii = 1:Nkeep
-        
-        % network weights after deconfounding
-        cgrotAAd(:, ii) = corr(cca.dat1.factor(:, ii), NETd(:, 1:size(NET, 2)))';
-        % only use the first normalized network columns, ignore the additional pca confounds
-        
-        % behavior weights after deconfounding
-        cgrotBBd(:, ii) = corr(cca.dat2.factor(:, ii), varsgrot, 'rows', 'pairwise')';
-        
-        % pull observed correlation
-        cgrotR(ii) = corr(cca.dat1.factor(:, ii), cca.dat2.factor(:, ii));
-        
-        % variability extracted by each cc data set
-        cgrotAAv(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan');
-        cgrotBBv(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan');
-        
-        % redundancy of each cc component
-        cgrotAAr(ii) = mean(cgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
-        cgrotBBr(ii) = mean(cgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
-
-end
-
-% THE CV LOADINGS ARE NEARLY THE SAME AS THE REBUILT LOADINGS
-% HOW DO WE DETERMINE WHICH ONES TO USE?
-
-clear ii
-
-% proportion of variability accounted for in each CC
-cgrotRv = cgrotR .^ 2;
-
-% percent accounted for in each CC
-cgrotPc = (cgrotRv ./ sum(cgrotRv)) * 100;
-
-% save fields to output
-cc2.dat1.factor = cvU.mn;
-cc2.dat1.factor_se = cvU.std ./ sqrt(Nrep);
-
-cc2.dat1.loading = cgrotAAd;
-cc2.dat1.variability = cgrotAAv;
-cc2.dat1.redundancy = cgrotAAr;
-
-cc2.dat2.factor = cvV.mn;
-cc2.dat2.factor_se = cvV.std ./ sqrt(Nrep);
-
-cc2.dat2.loading = cgrotBBd;
-cc2.dat2.variability = cgrotBBv;
-cc2.dat2.reduncancy = cgrotBBr;
-
-cc2.cca.varExplained = cgrotRv;
-cc2.cca.percentExp = cgrotPc;
-
 %% CCA permutation testing for parameters
 
 if Nperm >= 2
@@ -390,7 +322,7 @@ if Nperm >= 2
     
     % preallocate output
     grotRp = zeros(Nperm, Nkeep, 2);
-    grotRpval = nan(Nkeep, 2);
+    grotRpval = zeros(Nkeep, 2);
     
     % preallocate null noise data
     grotAtr = zeros(Nperm, Nkeep, size(NET, 2));
@@ -410,8 +342,8 @@ if Nperm >= 2
     for ii = 2:Nperm+1
         
         % get cross-validated loadings for each permutation
-        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), NETd, varsgrot, Nfold, 5000);
-        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, NETd, varsgrot, Nfold, 5000);
+        [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii), :), NETd, varsgrot, Nfold, 1000);
+        [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii), :), uu2, NETd, varsgrot, Nfold, 1000);
         
         % catch the average across the holdouts - should this be min/max?
         grotRp(ii, :, 1) = mean(mean(thoR1.mn), 'omitnan');
@@ -482,8 +414,8 @@ end
 %% cross-validation function for compartmentalization
 function [ cvU, cvV, trR, hoR, grotAAd, grotBBd, grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep)
 
-% the number of repeats to do per mapped estimate - always at least 5000 reps passed
-Nmap = 5000;
+% the number of repeats to do per mapped estimate - always at least 500 reps passed
+Nmap = 500;
 
 % determine the number of map estimates to make
 Nsplit = Nrep / Nmap;
@@ -522,14 +454,14 @@ for map = 1:Nsplit
     mgrotBBv = zeros(Nkeep, Nmap);
     mgrotAAr = zeros(Nkeep, Nmap);
     mgrotBBr = zeros(Nkeep, Nmap);
-    
-    % for every repeated k-fold
-    for rep = 1:Nsplit
+       
+    % for every repeat requested
+    for rep = 1:Nmap
         
         % create the requested number of folds across all subjects
         cvlab = crossvalind('Kfold', 1:size(uu1, 1), Nfold);
         
-        % for every fold
+        % for every fold within a repeat
         for fold = 1:Nfold
             
             % make a copy of full data for dropping values
@@ -591,6 +523,7 @@ end
 
 out.n = 0;
 out.mn = squeeze(zeros(x, y, z));
+out.md = squeeze(zeros(x, y, z));
 out.var = squeeze(zeros(x, y, z));
 out.std = squeeze(zeros(x, y, z));
 
@@ -605,6 +538,7 @@ ndim = ndims(dat);
 % take current (potentially empty) structure
 a_n = cv.n;
 a_mean = cv.mn;
+a_median = cv.md;
 a_var = cv.var;
 %a_std = cv.std;
 
@@ -617,11 +551,11 @@ b_var = var(dat, 1, ndim, 'omitnan');
 % compute and return the combination
 out.n = a_n + b_n;
 out.mn = ((a_mean .* a_n) + (b_mean .* b_n)) ./ out.n;
+out.md = median(cat(ndim, a_median, dat), ndim, 'omitnan'); % a "median of medians" is the best approximate of the true value
 out.var = (((a_n .* a_var) + (b_n .* b_var)) ./ out.n) + ((a_n .* b_n) .* ((b_mean - a_mean) ./ out.n).^2);
 out.std = sqrt(out.var);
 
 end
-
 
 % %% extimate central tendency / variability across 3rd dimension
 % function [ cv, sd ] = ct3d(mat, val)
