@@ -100,6 +100,15 @@ end
 % force the minimum number of PCA components to become canonical factors for global comparisons
 Nkeep = min([ Nkeep1, Nkeep2 ]);
 
+% enforce that the input data has the same observations
+if size(NET, 1) ~= size(vars, 1)
+    error('Input datasets have a different number of observations.');
+end
+
+% pull the number of subjects / variables from inputs
+Nsub = size(NET, 1);
+Nnet = size(NET, 2);
+
 %% setup confounds matrix
 
 disp('Normalizing confounds data...');
@@ -248,7 +257,12 @@ dat.dat2.nrm = varsgrot;
 dat.dat2.names = varsNames;
 dat.dat2.label = varsLabel;
 
+% pull the number of variables from corrected data
+Nvar = size(varsgrot, 2);
+
 disp('Storing preprocessed data...');
+
+clear amNET badconf badvars conf confNames dd NET NET1 NET3 netsNames ss1 uu vars varsd varsdCOV varsdCOV2 varsLabel varsNames
 
 %% run the analysis
 
@@ -265,36 +279,28 @@ else
 end
 
 % get the full analysis loadings, variability, sign, etc.
-fgrotAAd = nan(size(NET, 2), Nkeep);
-fgrotBBd = nan(size(varsgrot, 2), Nkeep);
-fgrotAAp = nan(size(NET, 2), Nkeep);
-fgrotBBp = nan(size(varsgrot, 2), Nkeep);
-fgrotAAv = nan(Nkeep, 1);
-fgrotBBv = nan(Nkeep, 1);
-fgrotAAr = nan(Nkeep, 1);
-fgrotBBr = nan(Nkeep, 1);
+fgrotAAd = nan(Nnet, Nkeep);
+fgrotBBd = nan(Nvar, Nkeep);
+fgrotAAp = nan(Nnet, Nkeep);
+fgrotBBp = nan(Nvar, Nkeep);
 
 % for every CC
 for ii = 1:Nkeep
         
         % network weights after deconfounding
-        fgrotAAd(:, ii) = corr(grotU(:, ii), NETd(:, 1:size(NET, 2)))';
+        fgrotAAd(:, ii) = corr(grotU(:, ii), NETd(:, 1:Nnet))';
         fgrotAAp(:, ii) = fgrotAAd(:, ii) > 0;
         % only use the first normalized network columns, ignore the additional pca confounds
         
         % behavior weights after deconfounding
         fgrotBBd(:, ii) = corr(grotV(:, ii), varsgrot, 'rows', 'pairwise')';
         fgrotBBp(:, ii) = fgrotBBd(:, ii) > 0;
-        
-        % variability extracted by each cc data set
-        fgrotAAv(ii) = mean(fgrotAAd(:, ii).^2, 'omitnan');
-        fgrotBBv(ii) = mean(fgrotBBd(:, ii).^2, 'omitnan');
-        
-        % redundancy of each cc component
-        fgrotAAr(ii) = mean(fgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
-        fgrotBBr(ii) = mean(fgrotBBd(:, ii).^2, 'omitnan') * grotR(ii)^2;
 
 end
+
+% removed measures that I never used and how to compute them
+% variability = mean(fgrotAAd(:, ii).^2, 'omitnan');
+% redundancy = mean(fgrotAAd(:, ii).^2, 'omitnan') * grotR(ii)^2;
 
 clear ii
 
@@ -322,17 +328,18 @@ end
 % save full recovered values
 cca.full.fgrotAAd = fgrotAAd;
 cca.full.fgrotAAp = logical(fgrotAAp);
-cca.full.fgrotAAv = fgrotAAv;
-cca.full.fgrotAAr = fgrotAAr;
 
 cca.full.fgrotBBd = fgrotBBd;
 cca.full.fgrotBBp = logical(fgrotBBp);
-cca.full.fgrotBBv = fgrotBBv;
-cca.full.fgrotBBr = fgrotBBr;
+
+clear fgrotAAd fgrotAAp fgrotBBd fgrotBBp A B grotR grotstats grotU grotV
+clear alpha1 alpha2 K1 K2
+
+%% cross-validation of CCA loadings
 
 % create repeated k-fold estimated loadings
-[ cvU, cvV, trR, hoR, grotAAd, grotBBd, ...
-  grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep, kernel, kernelpar, reg, true);
+[ cvU, cvV, trR, hoR, grotAAd, grotBBd ] ...
+    = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep, kernel, kernelpar, reg, true);
 
 % save cross-validated fields to output
 
@@ -343,13 +350,9 @@ switch ct
     
         cca.dat1.factor = cvU.mn;
         cca.dat1.loading = grotAAd.mn;
-        cca.dat1.variability = grotAAv.mn;
-        cca.dat1.redundancy = grotAAr.mn;
-        
+       
         cca.dat2.factor = cvV.mn;
         cca.dat2.loading = grotBBd.mn;
-        cca.dat2.variability = grotBBv.mn;
-        cca.dat2.redundancy = grotBBr.mn;
         
         cca.cca.trcorrs = trR.mn;
         cca.cca.hocorrs = hoR.mn;
@@ -358,13 +361,9 @@ switch ct
         
         cca.dat1.factor = cvU.md;
         cca.dat1.loading = grotAAd.md;
-        cca.dat1.variability = grotAAv.md;
-        cca.dat1.redundancy = grotAAr.md;
         
         cca.dat2.factor = cvV.md;
         cca.dat2.loading = grotBBd.md;
-        cca.dat2.variability = grotBBv.md;
-        cca.dat2.redundancy = grotBBr.md;
         
         cca.cca.trcorrs = trR.md;
         cca.cca.hocorrs = hoR.md;
@@ -374,13 +373,9 @@ end
 % pull standard error from cv values
 cca.dat1.factor_se = cvU.std ./ sqrt(Nrep);
 cca.dat1.loading_se = grotAAd.std ./ sqrt(Nrep);
-cca.dat1.variability_se = grotAAv.std ./ sqrt(Nrep);
-cca.dat1.redundancy_se = grotAAr.std ./ sqrt(Nrep);
 
 cca.dat2.factor_se = cvV.std ./ sqrt(Nrep);
 cca.dat2.loading_se = grotBBd.std ./ sqrt(Nrep);
-cca.dat2.variability_se = grotBBv.std ./ sqrt(Nrep);
-cca.dat2.redundancy_se = grotBBr.std ./ sqrt(Nrep);
 
 cca.cca.trcorrs_se = trR.std ./ sqrt(Nrep);
 cca.cca.hocorrs_se = hoR.std ./ sqrt(Nrep);
@@ -402,6 +397,8 @@ cca.param.kernel = kernel;
 cca.param.kernelpar = kernelpar;
 cca.param.reg = reg;
 
+clear cvU cvV trR hoR grotAAd grotBBd
+
 %% CCA permutation testing for parameters
 
 if Nperm >= 2
@@ -409,22 +406,15 @@ if Nperm >= 2
     disp('Performing a permutation test to determine significant number of CCs...');
     
     % preallocate output
-    grotRp = zeros(2, Nkeep, Nperm);
-    %grotRpval = zeros(2, Nkeep);
-    
-    % preallocate null noise data
-    grotUtr = zeros(size(NET, 1), Nkeep, Nperm);
-    grotVtr = zeros(size(varsgrot, 1), Nkeep, Nperm);
-    grotAtr = zeros(size(NET, 2), Nkeep, Nperm);
-    grotBtr = zeros(size(varsgrot, 2), Nkeep, Nperm);
-    %grotAv = zeros(1, Nkeep, Nperm);
-    %grotBv = zeros(1, Nkeep, Nperm);
-    %grotAr = zeros(1, Nkeep, Nperm);
-    %grotBr = zeros(1, Nkeep, Nperm);
+    grotRr = zeros(2, Nkeep, Nperm);
+    grotUtr = zeros(Nsub, Nkeep, Nperm);
+    grotVtr = zeros(Nsub, Nkeep, Nperm);
+    grotAtr = zeros(Nnet, Nkeep, Nperm);
+    grotBtr = zeros(Nvar, Nkeep, Nperm);
     
     % predefine permutation sets 
-    % add 1 to Nperm b/c the first one isn't random
-    PAPset = palm_quickperms([], ones(size(varsgrot, 1), 1), Nperm+1);
+    % add 1 to Nperm b/c the first one isn't randomized
+    PAPset = palm_quickperms([], ones(Nsub, 1), Nperm+1);
     
     disp('Reconstructing null parameters from random permutations...');
     
@@ -433,6 +423,7 @@ if Nperm >= 2
         
         % get cross-validated loadings for each permutation
         % use ii+1 to skip first, original ordering of data, only use random sortings
+        % only run 5 repeats for null, noise is noise afterall... (?)
         [ grotUr, ~, ~, thoR1 ] = cvCCA(uu1, uu2(PAPset(:, ii+1), :), NETd, varsgrot, Nfold, 5, kernel, kernelpar, reg);
         [ ~, grotVr, ~, thoR2 ] = cvCCA(uu1(PAPset(:, ii+1), :), uu2, NETd, varsgrot, Nfold, 5, kernel, kernelpar, reg);
                 
@@ -452,8 +443,8 @@ if Nperm >= 2
                     grotBtr(:, jj, ii) = corr(grotVr.mn(:, jj), varsgrot, 'rows', 'pairwise')';
                     
                     % catch the holdout correlation
-                    grotRp(1, jj, ii) = thoR1.mn(jj);
-                    grotRp(2, jj, ii) = thoR2.mn(jj);
+                    grotRr(1, jj, ii) = thoR1.mn(jj);
+                    grotRr(2, jj, ii) = thoR2.mn(jj);
         
                 otherwise
                     
@@ -462,81 +453,61 @@ if Nperm >= 2
                     grotVtr(:, :, ii) = grotVr.md;
                     
                     % null network / behavior loadings after deconfounding
-                    grotAtr(:, jj, ii) = corr(grotUr.md(:, jj), NETd(:, 1:size(NET, 2)))';
+                    grotAtr(:, jj, ii) = corr(grotUr.md(:, jj), NETd(:, 1:Nnet))';
                     grotBtr(:, jj, ii) = corr(grotVr.md(:, jj), varsgrot, 'rows', 'pairwise')';
 
                     % catch the holdout correlation
-                    grotRp(1, jj, ii) = thoR1.md(jj);
-                    grotRp(2, jj, ii) = thoR2.md(jj);
+                    grotRr(1, jj, ii) = thoR1.md(jj);
+                    grotRr(2, jj, ii) = thoR2.md(jj);
                     
-            end
-            
-            % store variability captured in A / B
-            %grotAv(ii, jj) = mean(grotAtr(ii, jj, :) .^ 2, 'omitnan');
-            %grotBv(ii, jj) = mean(grotBtr(ii, jj, :) .^ 2, 'omitnan');
-            
-            % store redundancy in A / B
-            %grotAr(ii, jj) = mean(grotAtr(ii, jj, :) .^ 2, 'omitnan') * grotRp(ii, jj);
-            %grotBr(ii, jj) = mean(grotBtr(ii, jj, :) .^ 2, 'omitnan') * grotRp(ii, jj);
-            
+            end            
         end
     end
     
     clear ii jj grotUr grotVr thoR1 thoR2
     
-    switch ct
-        case {'mn', 'mean'}
-            grotRpval = mean(grotRp, 3, 'omitnan');
-        otherwise
-            grotRpval = median(grotRp, 3, 'omitnan');
+    % collapse null correlations to a single null observation
+    grotRr = mean(grotRr, 1, 'omitnan');
+
+    % count # of null correlations greater than trained hold-outs
+    pval = nan(1, Nkeep);
+    for ii = 1:Nkeep
+        pval(ii) = sum(grotRr(1, ii, :) > cca.cca.hocorrs(ii)) / Nperm;
     end
     
-    % count # of CCA factors that pass correction from the hold-out data
-    Ncca1 = sum(grotRpval(1, :) < 0.05); % number of FWE-significant CCA components
-    Ncca2 = sum(grotRpval(2, :) < 0.05); % number of FWE-significant CCA components
+    % determine number of significant FWE elements
+    Ncca = sum(pval < 0.05); % number of FWE-significant CCA components
     
     % save fields to output
-    %cca.dat1.var = grotAv;
-    %cca.dat1.red = grotAr;
     cca.dat1.factor_null = grotUtr;
     cca.dat1.loading_null = grotAtr;
     
-    %cca.dat2.var = grotBv;
-    %cca.dat2.red = grotBr;
     cca.dat2.factor_null = grotVtr;
     cca.dat2.loading_null = grotBtr;
     
-    cca.cca.ncca1 = Ncca1;
-    cca.cca.ncca2 = Ncca2;
-    
-    cca.cca.pval = grotRpval;
-    cca.cca.pval_null = grotRp;
+    cca.cca.ncca = Ncca;
+    cca.cca.pval = pval;
+    cca.cca.hocorrs_null = mean(grotRr, 1, 'omitnan');
     
 else
     
     % fill in fields as empty
-    %cca.dat1.var = [];
-    %cca.dat1.red = [];
     cca.dat1.factor_null = [];
     cca.dat1.loading_null = [];
     
-    %cca.dat2.var = [];
-    %cca.dat2.red = [];
     cca.dat2.factor_null = [];
     cca.dat2.loading_null = [];
     
-    cca.cca.ncca1 = [];
-    cca.cca.ncca2 = [];
-    
-    cca.cca.pval = [];
-    cca.cca.pval_null = [];
+    cca.cca.ncca = [];
+    cca.cca.pval = [];   
+    cca.cca.hocorrs_null = [];
     
 end
 
 end
 
 %% cross-validation function for compartmentalization
-function [ cvU, cvV, trR, hoR, grotAAd, grotBBd, grotAAv, grotBBv, grotAAr, grotBBr ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep, kernel, kernelpar, reg, verb)
+function [ cvU, cvV, trR, hoR, grotAAd, grotBBd ] = cvCCA(uu1, uu2, NETd, varsgrot, Nfold, Nrep, kernel, kernelpar, reg, verb)
 
 if(~exist('verb', 'var') || isempty(verb))
     verb = false;
@@ -565,10 +536,6 @@ rtrR = nan(Nfold, Nkeep, Nrep);
 rhoR = nan(1, Nkeep, Nrep);
 rgrotAAd = nan((size(NETd, 2)/2), Nkeep, Nrep);
 rgrotBBd = nan(size(varsgrot, 2), Nkeep, Nrep);
-rgrotAAv = nan(Nkeep, 1, Nrep);
-rgrotBBv = nan(Nkeep, 1, Nrep);
-rgrotAAr = nan(Nkeep, 1, Nrep);
-rgrotBBr = nan(Nkeep, 1, Nrep);
 
 % for every repeat requested
 for rep = 1:Nrep
@@ -604,7 +571,7 @@ for rep = 1:Nrep
             % train model on a subset of observations
             [ ~, ~, rtrR(fold, :, rep), ta1, ta2, ~, ~, n0 ] = km_kcca(truu1, truu2, kernel, kernelpar, reg, Nkeep);
             
-            % build test filter space - these are identical (?), based on subject number
+            % build test filter space - these are identical, based on subject number
             [ ~, ~, ~, ~, ~, ~, ~, tnx ] = km_kcca(uu1(hoidx, :), uu1(hoidx, :), kernel, kernelpar, reg, Nkeep);
             [ ~, ~, ~, ~, ~, ~, ~, tny ] = km_kcca(uu2(hoidx, :), uu2(hoidx, :), kernel, kernelpar, reg, Nkeep);
             
@@ -621,10 +588,6 @@ for rep = 1:Nrep
         rhoR(1, cf, rep) = corr(rcvU(:, cf, rep), rcvV(:, cf, rep));
         rgrotAAd(:, cf, rep) = corr(rcvU(:, cf, rep), NETd(:, 1:(size(NETd, 2)/2)))';
         rgrotBBd(:, cf, rep) = corr(rcvV(:, cf, rep), varsgrot, 'rows', 'pairwise')';
-        rgrotAAv(cf, rep) = mean(rgrotAAd(:, cf, rep), 'omitnan').^2;
-        rgrotBBv(cf, rep) = mean(rgrotBBd(:, cf, rep), 'omitnan').^2;
-        rgrotAAr(cf, rep) = mean(rgrotAAd(:, cf, rep), 'omitnan').^2 * rhoR(1, cf, rep).^2;
-        rgrotBBr(cf, rep) = mean(rgrotBBd(:, cf, rep), 'omitnan').^2 * rhoR(1, cf, rep).^2;
     end    
     
 end
@@ -666,30 +629,6 @@ grotBBd.mn = mean(rgrotBBd, 3, 'omitnan');
 grotBBd.md = median(rgrotBBd, 3, 'omitnan');
 grotBBd.var = var(rgrotBBd, 1, 3, 'omitnan');
 grotBBd.std = sqrt(grotBBd.var);
-
-grotAAv.n = Nrep;
-grotAAv.mn = mean(rgrotAAv, 3, 'omitnan');
-grotAAv.md = median(rgrotAAv, 3, 'omitnan');
-grotAAv.var = var(rgrotAAv, 1, 3, 'omitnan');
-grotAAv.std = sqrt(grotAAv.var);
-
-grotBBv.n = Nrep;
-grotBBv.mn = mean(rgrotBBv, 3, 'omitnan');
-grotBBv.md = median(rgrotBBv, 3, 'omitnan');
-grotBBv.var = var(rgrotBBv, 1, 3, 'omitnan');
-grotBBv.std = sqrt(grotBBv.var);
-
-grotAAr.n = Nrep;
-grotAAr.mn = mean(rgrotAAr, 3, 'omitnan');
-grotAAr.md = median(rgrotAAr, 3, 'omitnan');
-grotAAr.var = var(rgrotAAr, 1, 3, 'omitnan');
-grotAAr.std = sqrt(grotAAr.var);
-
-grotBBr.n = Nrep;
-grotBBr.mn = mean(rgrotBBr, 3, 'omitnan');
-grotBBr.md = median(rgrotBBr, 3, 'omitnan');
-grotBBr.var = var(rgrotBBr, 1, 3, 'omitnan');
-grotBBr.std = sqrt(grotBBr.var);
 
 end
 
