@@ -126,3 +126,62 @@ subplot(2, 1, 2);
 for ii = 1:size(x1, 1)
     plot(1:size(x2, 1), x2(1), '.');
 end
+
+%% plot param sweep plots
+
+% plot everything stored
+figure;
+for ii = 1:8
+    
+    subplot(2, 4, ii); 
+    imagesc(dat(:,:,ii)); 
+    axis equal; axis square; axis tight;
+    
+end
+
+% just pull age
+cage = dat(:,:,1);
+sage = dat(:,:,2);
+
+figure; 
+% subplot(1, 2, 1);
+imagesc(cage); colorbar;
+axis equal; axis square; axis tight;
+set(gca, 'XTick', [ 2, 50, 100 ], 'YTick', [ 2, 50, 100 ]);
+% subplot(1, 2, 2);
+% imagesc(sage); colorbar;
+% axis equal; axis square; axis tight;
+% set(gca, 'XTick', [ 2, 50, 100 ], 'YTick', [ 2, 50, 100 ]);
+
+% max corr w/ age?
+[ x, y ] = find(cage == max(cage(:))); % not what I ran. Why?
+
+%% load an individual param from sweep and make basic plots
+
+% pick brain / behavior number of PCs
+npca = [ 38, 40; 50, 50; 100, 100 ];
+datadir = '/N/dc2/projects/lifebid/HCP/Brent/camcan/figs/param_search_fig';
+
+for ii = 2:size(npca, 1)
+    
+    % create the stem for the output
+    stem = fullfile(datadir, sprintf('pca_brain_%03d_behavior_%03d', npca(ii, 1), npca(ii, 2)));
+    
+    % run the cca for the parameter vals
+    [ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, ...
+                                           netNames, varsNames, confNames, varsLabel, ...
+                                           npca(ii, 1), npca(ii, 2), 0, 5, 250000);
+    
+    % plot the basics of them
+    ccaPlotAxisCon(cca, 1, age, parula(88));
+    print([ stem '_main.eps' ], '-painters', '-depsc'); close all;
+    
+    ccaPlotRankedTrends(dat, cca, age, 'brain', 'load', 1, 'lines', 10);
+    print([ stem '_brain.eps' ], '-painters', '-depsc'); close all;
+    
+    ccaPlotRankedTrends(dat, cca, age, 'behavior', 'load', 1, 'lines', 10);
+    print([ stem '_behavior.eps' ], '-painters', '-depsc'); close all;
+    
+end
+
+ccaLinRegCorr(cca, 1, age, 1000)

@@ -68,8 +68,8 @@ out(2, 1) = mean(cdat(:));
 out(2, 2) = std(cdat(:));
 
 % pull the mean / sd of the loading standard deviation
-out(3, 1) = mean([ cca.dat1.loading_sd(:, 1); cca.dat2.loading_sd(:, 1) ]);
-out(3, 2) = std([ cca.dat1.loading_sd(:, 1); cca.dat2.loading_sd(:, 1) ]);
+out(3, 1) = mean([ cca.dat1.loading_se(:, 1); cca.dat2.loading_se(:, 1) ]);
+out(3, 2) = std([ cca.dat1.loading_se(:, 1); cca.dat2.loading_se(:, 1) ]);
 
 % pull the mean / sd of the loadings
 out(4, 1) = mean([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);

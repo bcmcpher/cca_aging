@@ -59,7 +59,7 @@ stem = 'ho_age_';
 ccaPlotAxisCon(cca, 1, age, parula(88), true);
 %print([ outdir stem 'test_cca1_finding.eps' ], '-painters', '-depsc');
 
-ccaPlotAxisCon(cca, 2, age, parula(88));
+ccaPlotAxisCon(cca, 2, age, parula(88), true);
 %print([ outdir stem 'test_cca2_finding.eps' ], '-painters', '-depsc');
 
 %% plot the ranked loadings to see if they're consistent
@@ -114,7 +114,8 @@ set(gca, 'XTick', 1:size(mdDat, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation',
     'YTick', 1:size(mdDat, 1), 'YTickLabels', mdLabs);
 %print([ outdir stem 'cca_dissimilarity_modules.eps' ], '-painters', '-depsc');
 
-set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 0.25 ]);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 .70 ]);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 1 ]);
 %print([ outdir stem 'cca_dissimilarity_brnxbeh_modules.eps' ], '-painters', '-depsc');
 %close all;
 

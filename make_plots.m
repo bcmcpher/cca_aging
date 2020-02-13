@@ -9,13 +9,13 @@ load('canoncorr_analysis_full_data.mat', 'age');
 % load the yeo labels
 load('~/hcp_mmp_vol/working/yeoLabs.mat');
 
-% % hold out age
-% stem = 'ho_age';
-% load('pca_brain_038_behavior_040_250k_ho_age.mat', 'dat', 'cca', 'dmat1', 'mdDat1');
+% hold out age
+stem = 'ho_age';
+load('pca_brain_038_behavior_040_250k_ho_age.mat', 'dat', 'cca', 'dmat1', 'mdDat1');
 
-% regress out age
-stem = 'rg_age';
-load('pca_brain_038_behavior_040_250k_rg_age.mat', 'dat', 'cca', 'dmat1', 'mdDat1');
+% % regress out age
+% stem = 'rg_age';
+% load('pca_brain_038_behavior_040_250k_rg_age.mat', 'dat', 'cca', 'dmat1', 'mdDat1');
 
 % simple reassign of outputs
 dmat = dmat1;
@@ -24,8 +24,8 @@ clear dmat1 mdDat1
                                
 %% get corr with age
 
-[ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 10000);
-[ mcrR2, mcrS2, mcpval2 ] = ccaLinRegCorr(cca, 2, age, 10000);
+[ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 100000);
+[ mcrR2, mcrS2, mcpval2 ] = ccaLinRegCorr(cca, 2, age, 100000);
 
 figure; hold on
 
@@ -46,6 +46,7 @@ print([ outdir stem '_corr_with_age.eps' ], '-painters', '-depsc'); close all
 %% plot of the main axis
 
 ccaPlotAxisCon(cca, 1, age, parula(88), true);
+set(gca, 'XLim', [ -.007 0.005 ], 'YLim', [ -.007 0.005 ]);
 print([ outdir stem '_cca1_finding.eps' ], '-painters', '-depsc'); close all
 
 ccaPlotAxisCon(cca, 2, age, parula(88), true);
@@ -64,10 +65,12 @@ print([ outdir stem '_cca1_behavior_loading.eps' ], '-painters', '-depsc'); clos
 %% plot the points / error bars of all variable loadings
 
 ccaPlotRankedTrends(dat, cca, age, 'brain', 'load', 1, 'points');
+set(gca, 'YLim', [ 1 376 ]);
 set(gcf, 'Position', [ 150 150 1300 875 ]);
 print([ outdir stem '_cca1_brain_loading_points.eps' ], '-painters', '-depsc'); close all
 
 ccaPlotRankedTrends(dat, cca, age, 'behavior', 'load', 1, 'points');
+set(gca, 'YLim', [ 1 334 ]);
 set(gcf, 'Position', [ 150 150 1300 875 ]);
 print([ outdir stem '_cca1_behavior_loading_points.eps' ], '-painters', '-depsc'); close all
 
@@ -134,22 +137,27 @@ ccaScaledContribution(cca, 'brain', 1, yeoLabs.yeo7, yeoLabs.yeo7Names');
 set(gcf, 'Position', [ 250 125 1300 775 ]);
 print([ outdir stem '_cca1_brain_domain_contribution.eps' ], '-painters', '-depsc'); close all
 
-% null distribution of CCA
-null = mean(squeeze(cca.cca.grotRp(:, 1, :))');
+% null distribution of CCA - WHY ARE THEY ALL THE SAME?
+n1 = mean(squeeze(cca.cca.grotRp(:, 1, :))');
+n2 = mean(squeeze(cca.cca.grotRp(:, 2, :))');
+n3 = mean(squeeze(cca.cca.grotRp(:, 3, :))');
+
 figure; hold on;
-hist(null, 64);
+subplot(1, 3, 1); hist(n1, 64);
+subplot(1, 3, 2); hist(n2, 64);
+subplot(1, 3, 3); hist(n3, 64);
 print([ outdir stem '_cca_corr_null_distribution.eps' ], '-painters', '-depsc'); close all;
 %plot([ cca.full.grotR(1) cca.full.grotR(1) ], [ 0 600 ], 'color', 'red');
 
-%% NEED A FULL MODULE CHORD PLOT
+%% NEED A FULL MODULE CHORD PLOT - maybe?
 % useful to describe change of within brain / between behavior when age is removed
 
 % assign placeholder name
 mat = mdDat;
-thr = 0.75;
+thr = 0.35;
 
 % assign semi-transparent colors for all edges, color by domain
-cmap = [ repmat([.1 .45 .95 .5], 10, 1); repmat([.95 .1 .25 .5 ], 7, 1) ];
+cmap = [ repmat([.1 .45 .95 .5 ], 10, 1); repmat([.95 .1 .25 .5 ], 7, 1) ];
 
 % readable labels
 clabs = {'Visual', 'Somatomotor', 'Dorsal Attention', 'Ventral Attention', ...
@@ -163,11 +171,24 @@ mx = max(mat(:));
 % create the output
 out = (mat - mn) / (mx - mn);
 
-% threshold
-out(out > thr) = 0;
-     
+% threshold and reverse score
+li = out > thr;
+out(li) = 0;
+out(~li) = 1 - out(~li);
+
+% square and zero
+out = out.^2;
+out(isnan(out)) = 0;
+
 % plot the labeled graph
+figure('Position', [ 675 45 850 875 ]);
 circularGraph(out, 'Colormap', cmap, 'label', clabs);
+
+% dumb, but makes cross-hemispheric purple
+cmap = [ repmat([.1 .45 .95 ], 10, 1); repmat([.95 .1 .25 ], 7, 1) ];
+circularGraph(out, 'Colormap', cmap, 'label', clabs);
+
+print([ outdir stem '_cca1_whole_brain_chord.eps' ], '-painters', '-depsc'); close all;
 
 %% module significance?
 
