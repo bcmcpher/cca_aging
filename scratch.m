@@ -184,4 +184,33 @@ for ii = 2:size(npca, 1)
     
 end
 
-ccaLinRegCorr(cca, 1, age, 1000)
+%% test reproducibility of fixed cv repeat loop
+
+% get 2 runs
+[ dat, cca1 ] = ccaFullKAnalysis(deg, vars, varsQconf, netNames, varsNames, confNames, varsLabels, 38, 40, 0, 5, 2500);
+[ ~, cca2 ] = ccaFullKAnalysis(deg, vars, varsQconf, netNames, varsNames, confNames, varsLabels, 38, 40, 0, 5, 2500);
+
+% compare main plots
+ccaPlotAxisCon(cca1, 1, age, parula(88), true);
+ccaPlotAxisCon(cca2, 1, age, parula(88), true);
+
+% build dissimilarity
+dmat1 = ccaDissimilarityMatrix(cca1);
+dmat2 = ccaDissimilarityMatrix(cca2);
+
+% plot the modules
+mdDat1 = fnModuleDensity(dmat1, [ yeoLabs.yeo7; ib+10 ], 'mean');
+figure; imagesc(mdDat1);
+axis square; axis equal; axis tight; colorbar; caxis([ 0 1 ]);
+title('Dissimiliarity Between Brain and Task Domains');
+mdLabs = [ yeoLabs.yeo7Names'; S ];
+set(gca, 'XTick', 1:size(mdDat1, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
+    'YTick', 1:size(mdDat1, 1), 'YTickLabels', mdLabs);
+
+mdDat2 = fnModuleDensity(dmat2, [ yeoLabs.yeo7; ib+10 ], 'mean');
+figure; imagesc(mdDat2);
+axis square; axis equal; axis tight; colorbar; caxis([ 0 1 ]);
+title('Dissimiliarity Between Brain and Task Domains');
+mdLabs = [ yeoLabs.yeo7Names'; S ];
+set(gca, 'XTick', 1:size(mdDat2, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
+    'YTick', 1:size(mdDat2, 1), 'YTickLabels', mdLabs);
