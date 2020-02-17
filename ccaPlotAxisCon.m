@@ -1,4 +1,4 @@
-function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap, ebars)
+function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap, ebars, full)
 %[ fh ] = ccaPlotAxisCon(grotU, grotV, ccf, nage, cmap);
 %   Plot the CCA of a specific factor, using a color mapped age value for
 %   each point.
@@ -12,6 +12,9 @@ function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap, ebars)
 %       ccf   - the cc to plot
 %       nage  - scaled age vector to correctly assign colors
 %       cmap  - color map scaled to align w/ nage for plotting
+%       full  - use the full set of observations w/o cross-validation. This
+%               will override a request for errorbars b/c there is not
+%               variability estimate in a full model.
 %   OUTPUTS:
 %       fh - figure handle of requested plot
 %
@@ -22,8 +25,25 @@ if(~exist('ebars', 'var') || isempty(ebars))
     ebars = false;
 end
 
-grotU = cca.dat1.factor;
-grotV = cca.dat2.factor;
+if(~exist('full', 'var') || isempty(full))
+    full = false;
+end
+
+disp('Determining correlation of main axis with age...');
+
+if full
+    ebars = false;
+    grotU = cca.full.grotU;
+    grotV = cca.full.grotV;
+    ccv = corr(grotU(:, ccf), grotV(:, ccf));
+    [ ageR, ageS ] = ccaLinRegCorr(cca, ccf, nage, 1000, true);
+else
+    grotU = cca.dat1.factor;
+    grotV = cca.dat2.factor;
+    ccv = cca.cca.hocorrs(ccf);
+    ccs = cca.cca.hocorrs_se(ccf);
+    [ ageR, ageS ] = ccaLinRegCorr(cca, ccf, nage, 1000);
+end
 
 if isfield(cca.dat1, 'factor_se')
     grotUs = cca.dat1.factor_se;
@@ -32,8 +52,6 @@ else
     grotUs = zeros(size(cca.dat1.factor));
     grotVs = zeros(size(cca.dat2.factor));
 end
-
-%Nrep = cca.param.Nrep;
 
 % plot data
 fh = figure('Position', [ 450 500 750 675 ]); hold on;
@@ -68,11 +86,18 @@ for ii = 1:size(grotU, 1)
 
 end
 
+% if the full model is passed, there is no variability on the estimate
+if full
+    ccatxt = ['Canonical Correlation of Factor ' num2str(ccf) ': ' num2str(ccv) ];
+else
+    ccatxt = ['Canonical Correlation of Factor ' num2str(ccf) ': ' num2str(ccv) ' +/- ' num2str(ccs) ];
+end
+
+% catch the correlation with age and format it into the title
+agetxt = [ 'Correlation of Factor ' num2str(ccf) ' with Age: ' num2str(ageR) ' +/- ' num2str(ageS) ];
+
 % final plot clean up
-%ccv = corr(grotU(:, ccf), grotV(:, ccf));
-ccv = cca.cca.hocorrs(ccf);
-%ccv = grotRv(ccf);
-title(['Canonical Correlation of Principal Factor ' num2str(ccf) ': ' num2str(ccv)]);
+title({ccatxt, agetxt});
 xlabel('Network Values');
 ylabel('Behavioral Scores');
 axis equal; axis square;

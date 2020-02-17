@@ -1,4 +1,4 @@
-function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm)
+function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm, full)
 %[ r2, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm);
 %   Estimate a multiway correlation and run a permutation test to determine
 %   it's significance.
@@ -8,6 +8,7 @@ function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm)
 %       ccf   - the canonical correlation to pull loadings from
 %       age   - a vector of each subjects age (holdout variable)
 %       Nperm - the number of permutations to run for pval
+%       full  - logical, use the full dataset CCA (not cross-validated)
 %   OUTPUTS:
 %       rr   - resampled mean r value estimated for multiway correlation
 %       rse  - resampled standard deviation of the estimated r value
@@ -27,8 +28,17 @@ function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm)
 % load data
 %load([ 'camcan_594_' stem '_cca.mat' ], 'grotU', 'grotV');
 
-grotU = cca.dat1.factor;
-grotV = cca.dat2.factor;
+if(~exist('full', 'var') || isempty(full))
+    full = false;
+end
+
+if full
+    grotU = cca.full.grotU;
+    grotV = cca.full.grotV;
+else
+    grotU = cca.dat1.factor;
+    grotV = cca.dat2.factor;
+end
 
 % load age
 %load('/N/dc2/projects/lifebid/HCP/Brent/camcan/canoncorr_analysis_full_data.mat', 'age');
