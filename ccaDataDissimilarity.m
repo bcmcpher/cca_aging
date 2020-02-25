@@ -1,15 +1,20 @@
-function [ dmat, cmat ] = ccaDataDissimilarity(dat)
+function [ dmat, cmat ] = ccaDataDissimilarity(dat, val)
 %[ dmat, cmat ] = ccaDataDissimilarity(dat);
 %   Create a dissimilarity matrix between all variables in both datasets.
 %
 %   INPUTS:
 %       dat - a fit data structure
+%       val - which dataset to request: 'both' (default), 'brain', 'behavior'
 %   OUTPUTS:
 %       dmat - the dissimilarity matrix between all variables in the CCA
 %       cmat - the correlation matrix between all variables in the CCA
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
+
+if(~exist('val', 'var') || isempty(val))
+    val = 'both';
+end
 
 % pull the data from the structure
 A = dat.dat1.raw';
@@ -26,7 +31,19 @@ disp('Inspecting dissimilarity between all variables in raw space...');
 
 % combine into one big [variable x subject] matrix
 %z = [ z1; z2 ];
-z = [ A; B ];
+
+% select / merge the requested data
+switch val
+    case 'brain'
+        disp('Only using brain data...');
+        z = A;
+    case 'behavior'
+        disp('Only using behavior data...');
+        z = B;
+    otherwise
+        disp('Using all data...');
+        z = [ A; B ];
+end
 
 % this is a variable x subj matrix that has the scaled constribution of
 % each field stored in it. The goal is to see how the vars correlate w/

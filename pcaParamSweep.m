@@ -1,4 +1,4 @@
-function [ out, dat, cca, cc2 ] = pcaParamSweep(pca1, pca2, rep, dat, outpath)
+function [ out, dat, cca ] = pcaParamSweep(pca1, pca2, rep, dat, outpath)
 %pcaParamSweep(pca1, pca2); 
 %   simple function to parallelize iterations of pca pairs for parameter
 %   tuning correlation b/w data, w/ age, and testing dissimilarity.
@@ -47,37 +47,30 @@ rng(seed(rep));
 %confNames = [ 'Age', confNames ];
 
 % parse output name from pca sweeps
-stem = sprintf('pca_brain_%03d_behavior_%03d_250k_rep%04d.mat', pca1, pca2, rep);
+% stem = sprintf('pca_brain_%03d_behavior_%03d_250k_rep%04d.mat', pca1, pca2, rep);
+stem = sprintf('pca_brain_%03d_behavior_%03d_15k.mat', pca1, pca2);
+
+disp([ 'Writing to output file: ' stem ]);
 
 %% run the iteration
 
 % preallocate the simple data output
-out = nan(4, 2);
+out = nan(2, 2);
 
 % run the cca for the parameter vals
-[ dat, cca, cc2 ] = ccaMapFullAnalysis(deg, vars, varsQconf, ...
-                                       netNames, varsNames, confNames, varsLabel, ...
-                                       pca1, pca2, 10000, 5, 250000);
+[ dat, cca ] = ccaFullKAnalysis(deg, vars, varsQconf, ...
+                                netNames, varsNames, confNames, varsLabels, ...
+                                pca1, pca2, 0, 5, 15000);
 
 % boostrap mean / sd of the correlation with age
-[ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 10000);
+[ out(1, 1), out(1, 2) ] = ccaLinRegCorr(cca, 1, age, 1000);
 
 % pull the mean / sd of the dataset correlation
-cdat = squeeze(cca.cca.hocorrs(:, 1, :));
-out(2, 1) = mean(cdat(:));
-out(2, 2) = std(cdat(:));
-
-% pull the mean / sd of the loading standard deviation
-out(3, 1) = mean([ cca.dat1.loading_se(:, 1); cca.dat2.loading_se(:, 1) ]);
-out(3, 2) = std([ cca.dat1.loading_se(:, 1); cca.dat2.loading_se(:, 1) ]);
-
-% pull the mean / sd of the loadings
-out(4, 1) = mean([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);
-out(4, 2) = std([ cca.dat1.loading(:, 1); cca.dat2.loading(:, 1) ]);
+out(2, 1) = cca.cca.hocorrs(1);
+out(2, 2) = cca.cca.hocorrs_se(1);
 
 % create dissimilarity b/w all variables in CCA
-dmat1 = ccaDissimilarityMatrix(cca);
-dmat2 = ccaDissimilarityMatrix(cc2);
+dmat = ccaDissimilarityMatrix(cca);
 
 % get index of sorted behaviors
 svar = regexprep(dat.dat2.names', '_.*', '');
@@ -85,13 +78,11 @@ svar = regexprep(svar, 'hint', 'comp');
 svar{1} = 'comp'; % replace the first dumb label
 [ ~, ~, ib ] = unique(svar);
 
-mdDat1 = fnModuleDensity(dmat1, [ yeoLabs.yeo7; ib+10 ], 'mean');
-mdDat2 = fnModuleDensity(dmat2, [ yeoLabs.yeo7; ib+10 ], 'mean');
+mdDat = fnModuleDensity(dmat, [ yeoLabs.yeo7; ib+10 ], 'mean');
 
 %% save the data down
 
-%save([ outdir stem '.mat' ], 'dat', 'cca', 'out', 'dmat', 'mdDat');
-save([ outpath stem ], 'dat', 'cca', 'cc2', 'out', 'dmat1', 'dmat2', 'mdDat1', 'mdDat2', '-v7.3');
+save([ outpath stem ], 'dat', 'cca', 'out', 'dmat', 'mdDat', '-v7.3');
 
 disp('Done.');
 

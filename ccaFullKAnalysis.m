@@ -180,7 +180,7 @@ dat.dat1.names = netsNames;
 
 %% identify "bad" SMs - e.g. because of bad outliers or not enough distinct values
 
-disp('Beginning normalization of behaior data...');
+disp('Beginning normalization of behavior data...');
 
 badvars = zeros(size(vars, 2), 1);
 for ii = 1:size(vars, 2)

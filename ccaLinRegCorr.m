@@ -75,7 +75,7 @@ for ii = 1:Nperm
     % randomly sample input w/ replacement
     rdat = z(rsub, :);
     
-    % fitlm on resorted w/ preplacement z
+    % fitlm on resorted w/ replacement z
     tout1 = fitlm(rdat, age);
     tout2 = fitlm(rdat, age(rsub));    
     

@@ -2,7 +2,7 @@
 
 % pick the folder to load param sweep data from
 %vers = 'osg';
-vers = 'osg-mean';
+vers = 'osg-mean-perm';
 
 datadir = [ '/N/dc2/projects/lifebid/HCP/Brent/camcan/param_sweep/' vers ];
 
@@ -12,7 +12,7 @@ if exist([ '/N/dc2/projects/lifebid/HCP/Brent/camcan/param_sweep/combined_' vers
     load([ '/N/dc2/projects/lifebid/HCP/Brent/camcan/param_sweep/combined_' vers '.mat' ]);
 else
     % preallocate the data output
-    dat = nan(100, 100, 8);
+    dat = nan(100, 100, 2);
 end
 
 % for every pca pair
@@ -20,7 +20,7 @@ for ii = 2:100
     for jj = 2:100
         
         % build the file
-        file = fullfile(datadir, sprintf('pca_brain_%03d_behavior_%03d_test.mat', ii, jj));
+        file = fullfile(datadir, sprintf('pca_brain_%03d_behavior_%03d_15k.mat', ii, jj));
         
         % if the file exists and the data isn't filled in
         if exist(file, 'file') && isnan(dat(ii, jj, 1))
@@ -38,10 +38,10 @@ for ii = 2:100
             dat(ii, jj, 2) = out.out(1, 2);
             dat(ii, jj, 3) = out.out(2, 1);
             dat(ii, jj, 4) = out.out(2, 2);
-            dat(ii, jj, 5) = out.out(3, 1);
-            dat(ii, jj, 6) = out.out(3, 2);
-            dat(ii, jj, 7) = out.out(4, 1);
-            dat(ii, jj, 8) = out.out(4, 2);
+%             dat(ii, jj, 5) = out.out(3, 1);
+%             dat(ii, jj, 6) = out.out(3, 2);
+%             dat(ii, jj, 7) = out.out(4, 1);
+%             dat(ii, jj, 8) = out.out(4, 2);
             clear out
             
         end
