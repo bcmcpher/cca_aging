@@ -253,6 +253,7 @@ varsgrot = palm_inormal(vars);
 dat.dat2.uu2 = uu2;
 dat.dat2.ss2 = dd;
 dat.dat2.raw = vars;
+dat.dat2.bad = badvars;
 dat.dat2.nrm = varsgrot;
 dat.dat2.names = varsNames;
 dat.dat2.label = varsLabel;
@@ -371,14 +372,14 @@ switch ct
 end
 
 % pull standard error from cv values
-cca.dat1.factor_se = cvU.std ./ sqrt(Nrep);
-cca.dat1.loading_se = grotAAd.std ./ sqrt(Nrep);
+cca.dat1.factor_se = cvU.std ./ sqrt(Nsub);
+cca.dat1.loading_se = grotAAd.std ./ sqrt(Nsub);
 
-cca.dat2.factor_se = cvV.std ./ sqrt(Nrep);
-cca.dat2.loading_se = grotBBd.std ./ sqrt(Nrep);
+cca.dat2.factor_se = cvV.std ./ sqrt(Nsub);
+cca.dat2.loading_se = grotBBd.std ./ sqrt(Nsub);
 
-cca.cca.trcorrs_se = trR.std ./ sqrt(Nrep);
-cca.cca.hocorrs_se = hoR.std ./ sqrt(Nrep);
+cca.cca.trcorrs_se = trR.std ./ sqrt(Nsub);
+cca.cca.hocorrs_se = hoR.std ./ sqrt(Nsub);
 
 % proportion of variability accounted for in each CC / percent accounted for in each CC
 cca.cca.trRv = mean(trR.mn, 'omitnan') .^ 2;

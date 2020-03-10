@@ -1,8 +1,8 @@
 %% just run simple example all the way through
 
 % define the number of domains and permutations
-Nkeep = 50;
-Nperm = 2;
+%Nkeep = 50;
+%Nperm = 2;
 
 % path to output directory
 outdir = '/N/dc2/projects/lifebid/HCP/Brent/camcan/figs/panels_20191114/';
@@ -40,15 +40,10 @@ stem = 'ho_age_';
 % 38, 40; % max corr w/ age
 % 57, 48; % min fano factor
 
-[ dat, cca ] = ccaTestFullAnalysis(deg, vars, varsQconf, ...
-                                   netNames, varsNames, confNames, varsLabel, ...
-                                   38, 40, Nperm, true, 'median', 5, 1000);
+[ dat, cca ] = ccaFullKAnalysis(deg, vars, varsQconf, ...
+                                netNames, varsNames, confNames, varsLabel, ...
+                                38, 40, 0, 5, 15000, 'median');
 
-% just make dat for loaded structure
-[ dat, ~ ] = ccaTestFullAnalysis(deg, vars, varsQconf, ...
-                                   netNames, varsNames, confNames, varsLabel, ...
-                                   38, 40, 2, true, 'median', 2, 10);
-                               
 %% get corr with age
 
 [ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 1000);
@@ -56,6 +51,7 @@ stem = 'ho_age_';
 
 %% plot of the main axis
 
+ccaPlotAxisCon(cca, 1, age, parula(88), false, true);
 ccaPlotAxisCon(cca, 1, age, parula(88), true);
 %print([ outdir stem 'test_cca1_finding.eps' ], '-painters', '-depsc');
 
@@ -64,10 +60,10 @@ ccaPlotAxisCon(cca, 2, age, parula(88), true);
 
 %% plot the ranked loadings to see if they're consistent
 
-ccaPlotRankedTrends(dat, cca, age, 'brain', 'load', 1, 30);
+ccaPlotRankedTrends(dat, cca, age, 'brain', 'load', 1, 'lines', 30);
 %print([ outdir stem 'test_brain_loading.eps' ], '-painters', '-depsc');
 
-ccaPlotRankedTrends(dat, cca, age, 'behavior', 'load', 1, 30);
+ccaPlotRankedTrends(dat, cca, age, 'behavior', 'load', 1, 'lines', 30);
 %print([ outdir stem 'test_behavior_loading.eps' ], '-painters', '-depsc');
 
 %% create dissimilarity
@@ -114,7 +110,7 @@ set(gca, 'XTick', 1:size(mdDat, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation',
     'YTick', 1:size(mdDat, 1), 'YTickLabels', mdLabs);
 %print([ outdir stem 'cca_dissimilarity_modules.eps' ], '-painters', '-depsc');
 
-set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 .70 ]);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 .35 ]);
 set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 1 ]);
 %print([ outdir stem 'cca_dissimilarity_brnxbeh_modules.eps' ], '-painters', '-depsc');
 %close all;
@@ -130,3 +126,19 @@ grp = [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 2 ];
 % use bootstrap test to draw significance
 %[ Mden, fh, Mprm ] = fnModulePermutationSignificance(dmat, ???, [ yeoLabs.yeo7; ib+10 ], grp);
 % second input should be 3d mat of null dissimilarity matix?
+
+%% plot example distribution of loading
+
+% random loadings
+x = 0.35 + 0.04 .* randn(15000, 1);
+y = -.25 + 0.08 .* randn(15000, 1);
+
+figure; hold on;
+hist(x, 64);
+line([ median(x) median(x) ], [ 0 800 ], 'color', 'red');
+hold off;
+
+figure; hold on;
+hist(y, 64);
+line([ median(y) median(y) ], [ 0 800 ], 'color', 'red');
+hold off;

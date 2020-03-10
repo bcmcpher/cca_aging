@@ -214,3 +214,79 @@ title('Dissimiliarity Between Brain and Task Domains');
 mdLabs = [ yeoLabs.yeo7Names'; S ];
 set(gca, 'XTick', 1:size(mdDat2, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation', 45, ...
     'YTick', 1:size(mdDat2, 1), 'YTickLabels', mdLabs);
+
+%% plot the parameter search space
+
+z = load('param_sweep/combined_osg-mean-perm.mat');
+
+figure;
+for ii = 1:4
+    subplot(2, 2, ii);
+    imagesc(z.dat(:,:,ii)); colorbar;
+    axis equal; axis square; axis tight;
+end
+
+
+
+%% error estimate by axis
+
+% % R code
+%
+% # standardize data
+% > Xs <- scale(X)
+% > Ys <- scale(Y)
+%
+% # canonical correlations of correlation (standardized data)
+% > ccas <- cancor(Xs, Ys)
+%
+% # cca (the normal way)
+% > Sx <- cov(Xs)
+% > Sy <- cov(Ys)
+% > Sxy <- cov(Xs,Ys)
+%
+% # error of approximation matrices (with r=2)
+% > Ainv <- solve(Ahat)
+% > Binv <- solve(Bhat)%
+% > r <- 2
+%
+% > Ex <- Sx - crossprod(Ainv[1:r,])
+% > Ey <- Sy - crossprod(Binv[1:r,])
+% > Exy <- Sxy - crossprod(diag(rho[1:r]) %*% Ainv[1:r,], Binv[1:r,])
+%
+% # get norms of error matrices
+% > sqrt(mean(Ex^2))[1] 0.2432351 
+% > sqrt(mean(Ey^2))[1] 0.2296716
+% > sqrt(mean(Exy^2))[1] 0.07458264
+% 
+
+% run from debugger
+% must happen after PCA - need same # of columns
+Sx = cov(uu1);
+Sy = cov(uu2(:, 1:38));
+Sxy = cov(uu1, uu2(:, 1:38));
+
+Ainv = inv(A);
+Binv = inv(B(1:38, 1:38));
+
+Ex = Sx - (Ainv * Ainv');
+Ey = Sy - (Binv * Binv');
+Exy = Sxy - (Ainv * Binv);
+
+%% the count of variables
+
+size(find(contains(dat.dat2.names', 'RT')), 1) + ...
+size(find(contains(dat.dat2.names', 'rt')), 1) + ...
+size(find(contains(dat.dat2.names', 'reITRT')), 1) + ...
+size(find(contains(dat.dat2.names', 'invRT')), 1) + ...
+size(find(contains(dat.dat2.names', 'ReactionTime')), 1) + ...
+size(find(contains(dat.dat2.names', 'MovementTime')), 1)
+
+% the accuracy measures
+size(find(contains(dat.dat2.names', 'ACC')), 1) + ...
+size(find(contains(dat.dat2.names', 'pValid')), 1) + ...
+size(find(contains(dat.dat2.names', 'pYes')), 1) + ...
+size(find(contains(dat.dat2.names', 'FAM')), 1) + ...
+size(find(contains(dat.dat2.names', 'fam')), 1) + ...
+size(find(contains(dat.dat2.names', '_mean')), 1) + ...
+size(find(contains(dat.dat2.names', 'emm')), 1) + ...
+size(find(contains(dat.dat2.names', 'ekm')), 1) 

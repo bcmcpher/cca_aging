@@ -60,6 +60,9 @@ end
 
 %% plot the results
 
+cage = squeeze(dat(:,:,1));
+[ x, y ] = ind2sub(size(cage), find(cage == max(cage(:))));
+
 % correlation with age
 figure('Position', [ 100 500 1300 500 ]);
 subplot(1, 2, 1);
@@ -90,44 +93,44 @@ title('SE of Correlation Between Brain and Behavior by PCA Component');
 xlabel('Brain PCA Components');
 ylabel('Behavior PCA Components');
 
-% variable loading variability
-figure('Position', [ 100 500 1300 500 ]);
-subplot(1, 2, 1);
-imagesc(dat(:, :, 5)); colorbar;
-axis equal; axis square; axis tight;
-title('Variability of Loadings by PCA Component');
-xlabel('Brain PCA Components');
-ylabel('Behavior PCA Components');
-subplot(1, 2, 2);
-imagesc(dat(:, :, 6)); colorbar;
-axis equal; axis square; axis tight;
-title('SE of Variability of Loadings by PCA Component');
-xlabel('Brain PCA Components');
-ylabel('Behavior PCA Components');
-
-figure('Position', [ 100 500 1300 500 ]);
-subplot(1, 2, 1);
-imagesc(dat(:, :, 7)); colorbar;
-axis equal; axis square; axis tight;
-title('Mean of Loadings by PCA Component');
-xlabel('Brain PCA Components');
-ylabel('Behavior PCA Components');
-subplot(1, 2, 2);
-imagesc(dat(:, :, 8)); colorbar;
-axis equal; axis square; axis tight;
-title('SE of Mean of Loadings by PCA Component');
-xlabel('Brain PCA Components');
-ylabel('Behavior PCA Components');
+% % variable loading variability
+% figure('Position', [ 100 500 1300 500 ]);
+% subplot(1, 2, 1);
+% imagesc(dat(:, :, 5)); colorbar;
+% axis equal; axis square; axis tight;
+% title('Variability of Loadings by PCA Component');
+% xlabel('Brain PCA Components');
+% ylabel('Behavior PCA Components');
+% subplot(1, 2, 2);
+% imagesc(dat(:, :, 6)); colorbar;
+% axis equal; axis square; axis tight;
+% title('SE of Variability of Loadings by PCA Component');
+% xlabel('Brain PCA Components');
+% ylabel('Behavior PCA Components');
+% 
+% figure('Position', [ 100 500 1300 500 ]);
+% subplot(1, 2, 1);
+% imagesc(dat(:, :, 7)); colorbar;
+% axis equal; axis square; axis tight;
+% title('Mean of Loadings by PCA Component');
+% xlabel('Brain PCA Components');
+% ylabel('Behavior PCA Components');
+% subplot(1, 2, 2);
+% imagesc(dat(:, :, 8)); colorbar;
+% axis equal; axis square; axis tight;
+% title('SE of Mean of Loadings by PCA Component');
+% xlabel('Brain PCA Components');
+% ylabel('Behavior PCA Components');
 
 % plot the surfaces
 figure; 
-ax1 = subplot(1, 3, 1);
+ax1 = subplot(1, 2, 1);
 surf(dat(:,:,1));
-ax2 = subplot(1, 3, 2);
+ax2 = subplot(1, 2, 2);
 surf(dat(:,:,3));
-ax3 = subplot(1, 3, 3);
-surf(dat(:,:,5));
-Link = linkprop([ ax1, ax2, ax3 ],{'CameraUpVector', 'CameraPosition', 'CameraTarget', ...
+%ax3 = subplot(1, 3, 3);
+%surf(dat(:,:,5));
+Link = linkprop([ ax1, ax2 ],{'CameraUpVector', 'CameraPosition', 'CameraTarget', ...
                 'XLim', 'YLim', 'ZLim'});
 setappdata(gcf, 'StoreTheLink', Link);
 
