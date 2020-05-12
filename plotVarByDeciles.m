@@ -1,13 +1,14 @@
-function [ lcoeff, fh ] = plotVarByDeciles(x, age, vname)
+function [ out, fh ] = plotVarByDeciles(x, age, model, vname)
 %[ lcoeff, fh ] = plotVarByDeciles(x, age, vname);
 %   Plot a point for each decile (decade) of age in the dataset.
 %
 %   INPUTS:
 %       x - subj x 1 vector of data to plot
 %       age - subj x 1 vector of age for splitting data into deciles
+%       model - string indicating the type of model to fit
 %       vname - text field of variable for plot title
 %   OUTPUTS:
-%       lcoeff - coefficient of the trend line through the plot of data
+%       out - relevant fit coefficients based on call
 %       fh - figure handle for the generated plot
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
@@ -38,31 +39,93 @@ for ii = 1:size(abin, 2)-1 % indexes 1 ahead, so short 1 here
     
 end
 
-% plot the mean point and se bars for each decile bin
+%% fit trend line through binned points
+
+% create data from binned points
+xd = abin(1:end-1)'+5;
+yd = data(:, 1);
+
+% user defined optimization
+switch model
+    
+    case {'exp', 'exponential'}
+        
+        % exponential function to optimize
+        fun = @(p,x) p(1).*x.^p(2) + p(3);
+        
+        % initial linear fit for starting params
+        L = polyfit(xd, yd, 1);
+        
+        % turn off verbose output; set up and estimate exponential function
+        options = optimset('Display','off');
+        fitv = lsqcurvefit(fun, [ L(1) 1 L(2) ], xd, yd, [], [], options);
+        
+        % get predicted trends
+        fitp = fun(fitv, xd);
+        
+        % define term / value for plot
+        pname = 'Exponential';
+        lcoeff = fitv(2);
+        
+    case 'linear'
+        fitv = polyfit(xd, yd, 1);
+        fitp = polyval(fitv, xd);
+        pname = 'Linear';
+        lcoeff = fitv(1);
+        
+    case 'quadratic'
+        fitv = polyfit(xd, yd, 2);
+        fitp = polyval(fitv, xd);
+        pname = 'Quadratic';
+        lcoeff = fitv(1);
+        
+    otherwise
+        error('Not a valid model request.');
+        
+end
+
+%% estimate R2
+
+% pull parameters from data
+nobs = size(xd, 1);
+nparam = size(fitv, 2);
+
+% calculate R2
+R2 = 1 - ((nobs-1/nobs-nparam)*(sum((yd-fitp).^2)/sum(yd.^2)));
+
+% estimate AIC and AICc
+AIC = (2*nparam) - (2*log(R2));
+AICc = AIC * (2*nparam.^2 + 2*nparam)/(nobs - nparam - 1);
+
+%% plot the data and the requested trend
+
+% create figure
 fh = figure; hold on;
-for ii = 1:size(data, 1)
-    plot([ ii ii ], ...
+
+% plot fit trend line behind points
+plot(xd, fitp, 'b-');
+
+% plot points with error bars
+for ii = 1:size(xd, 1)
+    plot([ xd(ii) xd(ii) ], ...
          [ (data(ii, 1) + 2*data(ii, 2)) (data(ii, 1) - 2*data(ii, 2)) ], 'k');
-    plot(ii, data(ii, 1), 'o', 'MarkerEdgeColor', [ 0 0 0 ], ...
+    plot(xd(ii), data(ii, 1), 'o', 'MarkerEdgeColor', [ 0 0 0 ], ...
          'MarkerFaceColor', [ .8 0 0 ], 'MarkerSize', 8);
 end
-set(gca, 'Xlim', [ 0.5, 7.5 ], 'XTickLabels', xlabs);
-
-% fit trend through average points
-z = polyfit([1:7]', data(:, 1), 1);
-
-% extract the coefficients
-tl = polyval(z, [1:7]');
-
-% plot the trend line
-plot(1:7, tl, '-');
-
-lcoeff = z(1);
+hold off;
+set(gca, 'Xlim', [ 16 90 ], 'XTick', xd, 'XTickLabels', xlabs);
 
 xlabel('Age Category');
 ylabel(vname, 'Interpreter', 'none');
-title([ vname ' by Age' ], 'Interpreter', 'none');
-hold off;
+title({vname, [ pname ' Trendline - p = ' num2str(lcoeff) ]});
+
+%% create out
+
+out.fit = pname;
+out.param = fitv;
+out.lcoeff = lcoeff;
+out.R2 = R2;
+out.AIC = AIC;
+out.AICc = AICc;
 
 end
-
