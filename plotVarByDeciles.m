@@ -117,13 +117,13 @@ set(gca, 'Xlim', [ 16 90 ], 'XTick', xd, 'XTickLabels', xlabs);
 
 xlabel('Age Category');
 ylabel(vname, 'Interpreter', 'none');
-title({vname, [ pname ' Trendline - p = ' num2str(lcoeff) ]});
+title({vname, [ pname ' Trendline - p = ' num2str(lcoeff) ]}, 'Interpreter', 'none');
 
 %% create out
 
-out.fit = pname;
-out.param = fitv;
-out.lcoeff = lcoeff;
+out.fit = pname; % model fit
+out.param = fitv; % full set of parameters
+out.lcoeff = lcoeff; % most relevant value
 out.R2 = R2;
 out.AIC = AIC;
 out.AICc = AICc;

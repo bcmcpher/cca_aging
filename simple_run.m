@@ -44,10 +44,10 @@ stem = 'ho_age_';
                                 netNames, varsNames, confNames, varsLabel, ...
                                 38, 40, 0, 5, 15000, 'median');
 
-%% get corr with age
+%% get corr with age - now done in main axis plot for title
 
-[ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 1000);
-[ mcrR2, mcrS2, mcpval2 ] = ccaLinRegCorr(cca, 2, age, 1000);
+%[ mcrR1, mcrS1, mcpval1 ] = ccaLinRegCorr(cca, 1, age, 1000);
+%[ mcrR2, mcrS2, mcpval2 ] = ccaLinRegCorr(cca, 2, age, 1000);
 
 %% plot of the main axis
 
@@ -136,9 +136,11 @@ y = -.25 + 0.08 .* randn(15000, 1);
 figure; hold on;
 hist(x, 64);
 line([ median(x) median(x) ], [ 0 800 ], 'color', 'red');
+title(['Median:' num2str(median(x)) ' | SE: ' num2str(std(x)) ]);
 hold off;
 
 figure; hold on;
 hist(y, 64);
 line([ median(y) median(y) ], [ 0 800 ], 'color', 'red');
+title(['Median:' num2str(median(y)) ' | SE: ' num2str(std(y)) ]);
 hold off;

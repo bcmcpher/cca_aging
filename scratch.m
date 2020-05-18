@@ -22,6 +22,10 @@ Rsq_brain = 1 - sum((age - yh_brain).^2)/sum((age - mean(age)).^2);
 Rsq_behavior = 1 - sum((age - yh_behavior).^2)/sum((age - mean(age)).^2);
 Rsq_both = 1 - sum((age - yh_both).^2)/sum((age - mean(age)).^2);
 
+sqrt(Rsq_brain)
+sqrt(Rsq_behavior)
+sqrt(Rsq_both)
+
 % Brain R2 = 0.9142
 % Behavior R2 = 0.9270
 % Both R2 = 0.9986
@@ -290,3 +294,223 @@ size(find(contains(dat.dat2.names', 'fam')), 1) + ...
 size(find(contains(dat.dat2.names', '_mean')), 1) + ...
 size(find(contains(dat.dat2.names', 'emm')), 1) + ...
 size(find(contains(dat.dat2.names', 'ekm')), 1) 
+
+%% plot between data and loading
+
+% data modules
+zdat
+
+% cca modules
+mdDat
+
+% unique indices + diagonal
+xyi = nchoosek(1:17, 2);
+xyi = [ xyi; [ 1:17; 1:17 ]' ];
+
+% create figure
+fh = figure;
+
+% make 3 panels
+for sp = 1:3
+    
+    subplot(1, 3, sp); hold on;
+        
+    % for every point
+    for ii = 1:size(xyi, 1)
+        
+        % pull the points
+        ptx = xyi(ii, 1);
+        pty = xyi(ii, 2);
+        
+        % pull the values
+        cval = 1-zdat(ptx, pty);
+        dval = 1-mdDat(ptx, pty);
+        
+        % plot different colors if x/y are within/between brain/behavior
+        
+        % check x index
+        if ptx > 10
+            xc = 'behavior';
+        else
+            xc = 'brain';
+        end
+        
+        % check y index
+        if pty > 10
+            yc = 'behavior';
+        else
+            yc = 'brain';
+        end
+        
+        if (strcmp(xc, 'brain') && strcmp(yc, 'brain')) && sp == 2
+            ttl = 'Brain-Brain Interactions';
+            xlim = [ 0 1 ]; ylim = [ 0 1 ];
+            plot(cval, dval, 'o', 'MarkerFaceColor', [ 0.1 0.3 0.7 ], ...
+                'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6); % plot within brain
+        end
+        
+        if (strcmp(xc, 'behavior') && strcmp(yc, 'behavior')) && sp == 3
+            ttl = 'Behavior-Behavior Interactions';
+            xlim = [ 0 1 ]; ylim = [ 0 1 ];
+            plot(cval, dval, 'o', 'MarkerFaceColor', [ 0.3 0.7 0.1 ], ...
+                'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6); % plot within behavior
+        end
+        
+        if (strcmp(xc, 'brain') && strcmp(yc, 'behavior')) && sp == 1
+            ttl = 'Brain-Behavior Interactions';
+            xlim = [ 0 1 ]; ylim = [ 0 1 ];
+            plot(cval, dval, 'o', 'MarkerFaceColor', [ 0.7 0.3 0.1 ], ...
+                'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6); % plot brain x behavior
+        end
+        
+    end
+    
+    hold off;
+    title({ttl, 'Comparison Between Data and CCA'});
+    xlabel('Data Similarity');
+    ylabel('CCA Similarity');
+    axis square; axis equal; axis tight
+    set(gca, 'XLim', xlim, 'YLim', ylim);
+    
+end
+
+%% display yeo labels as a convenient table
+
+% 
+[ {yeoLabs.yeo7Names{yeoLabs.yeo7}}' ];
+
+%% get new parameters of trends across variables
+
+% pull normalized behavior data
+beh = dat.dat1.raw; % dat1 brain, dat2 behavior
+beh_names = dat.dat1.names;
+
+% or pull network statistics
+z = load('canoncorr_analysis_full_workspace.mat', 'node', 'glob');
+for ii = 1:size(z.glob, 1)
+    beh(ii, 1) = z.glob{ii}.density;
+    beh(ii, 2) = z.glob{ii}.efficiency;
+    beh(ii, 3) = max(z.node{ii}.degree);
+end
+
+% preallocate output
+out = nan(size(beh, 2), 4);
+
+% for every variable
+for ii = 1:size(beh, 2)
+    
+    % create the trend
+    tmp = plotVarByDeciles(beh(:, ii), age, 'quadratic', beh_names{ii});
+    
+    % pull the values
+    out(ii, 1) = tmp.lcoeff;
+    out(ii, 2) = tmp.R2;
+    out(ii, 3) = tmp.AIC;
+    out(ii, 4) = tmp.AICc;
+    
+    % close the figure
+    close all
+
+end
+
+% something is bad b/c complex, but just drop it
+out = real(out);
+
+% find positive / negative trends
+sp = out(:, 1) > 0;
+
+sum(sp)
+
+% positive parameters
+mean(out(sp, :))
+std(out(sp, :), [], 1)
+
+% negative parameters
+mean(out(~sp, :))
+std(out(~sp, :), [], 1)
+
+%% plot null bootstrap around corr
+
+% preallocate null shape
+lbub = nan(size(cca.cca.hocorrs_null, 2), 2);
+
+% pull the 5th / 95th percentiles
+for ii = 1:size(cca.cca.hocorrs_null, 2)
+    lbub(ii,:) = prctile(squeeze(cca.cca.hocorrs_null(1,ii,:)), [ 5 95 ]);
+end
+
+figure; hold on
+
+% plot null background
+fill([ 1:38, fliplr(1:38) ], [ lbub(:,1)', lbub(:,2)' ], [ .75 .75 .75 ]);
+
+% for every point
+for ii = 1:size(cca.cca.hocorrs, 2)
+    
+    % plot error bars
+    plot([ ii ii ], ...
+         [ (cca.cca.hocorrs(ii) + 2*cca.cca.hocorrs_se(ii)) ...
+         (cca.cca.hocorrs(ii) - 2*cca.cca.hocorrs_se(ii)) ], 'k');
+    
+    % plot points
+    plot(ii, cca.cca.hocorrs(ii), 'o', 'MarkerEdgeColor', [ 0 0 0 ], ...
+        'MarkerFaceColor', [ 0 0 .8 ], 'MarkerSize', 8);
+    
+end
+
+hold off
+
+%% mds color plot - not used
+
+% pull the raw data
+zzz = [ dat.dat1.nrm(:, 1:376) dat.dat2.nrm ];
+zzz(isnan(zzz)) = 0;
+
+% pull the dissimilarity of the data
+zz0 = squareform(pdist(zzz));
+
+% run mds
+[ zz1, zz2, zz3, zz4, zz5 ] = ccaMDScale(zz0, 10);
+
+idx = [ yeoLabs.yeo7; ib+10 ];
+
+fh = figure; hold on;
+
+% by variable
+for ii = 1:size(idx, 1)
+   
+    val = idx(ii);
+    
+    switch val
+        case {1,2,3,4,5,6,7,8,9,10}
+            clr = 'red';
+        case {11,12,13,14,15,16,17}
+            clr = 'blue';
+        otherwise
+            clr = 'green';
+    end
+            
+    plot(zz1(ii, 1), zz1(ii, 2), 'o', 'MarkerFaceColor', clr, ...
+         'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6);
+    
+    %plot3(zz1(ii, 1), zz1(ii, 2), zz1(ii, 3), '.', 'color', clr);
+            
+end
+
+hold off
+
+cmap = parula(88);
+
+% by subject
+for ii = 1:size(zz1, 1)
+   
+    clr = cmap(age(ii), :);
+            
+    plot(zz1(ii, 1), zz1(ii, 2), 'o', 'MarkerFaceColor', clr, ...
+         'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6);
+    
+    %plot3(zz1(ii, 1), zz1(ii, 2), zz1(ii, 3), '.', 'color', clr);
+            
+end
+
+hold off
