@@ -1,16 +1,28 @@
-function [ out ] = ccaBuildChordData(mat, fname)
+function [ val, out ] = ccaBuildChordData(mat, fname, thr, flip)
 %[ out ] = ccaBuildChordData(mat);
 %   This will take the m x n off diagonal matrix mat and create a scaled
 %   version for creating an axe / bat / directed chord plot in d3.
 %
 %   INPUTS:
 %       mat   - the off diagonal input matrix
-%       fname - the name of the output .csv to load into d3
+%       fname - the name of the output .json to load into d3; no extension
+%       thr   - percentile threshold; all values below are zeroed out
+%       flip  - (default) true / false; perform 1-mat to scale lowest
+%               dissimilarity value as thickest chord in plot.
 %   OUTPUTS:
 %       out - the created matrix with the correct space / scaling added
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
+
+if(~exist('thr', 'var') || isempty(thr))
+    thr = 0.75;
+end
+
+if(~exist('flip', 'var') || isempty(flip))
+    flip = true;
+    thr = 1 - thr;
+end
 
 % grab the size of each dimension, get the final data size
 n1 = size(mat, 1);
@@ -19,11 +31,13 @@ dm = n1 + n2 + 2;
 
 %% scale the values better for the plot
 
-% normalize here?
-dat = normScale(mat, 0.35);
-
 % convert from dissimilarity to similarity
-dat = 1 - dat;
+if flip
+    mat = 1 - mat;
+end
+
+% normalize here
+dat = normScale(mat, thr);
 
 % round and flip so more similar == higher number
 %val = round(dat*1000);          % linearly scale
@@ -85,6 +99,6 @@ mx = max(mat(:));
 out = (mat - mn) / (mx - mn);
 
 % threshold
-out(out > thr) = nan;
+out(out < thr) = nan;
 
 end

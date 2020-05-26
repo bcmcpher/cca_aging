@@ -16,7 +16,8 @@ function [ fh ] = plotVarianceExplained(cca, dat)
 % TRY AND GET AXIS SCALED TO PERCENT CORRECTLY
 %
 
-obs = cca.(dat).variability;
+% variability = mean(fgrotAAd(:, ii).^2, 'omitnan');
+obs = mean(cca.(dat).variability;
 perm = cca.(dat).var;
 
 % check that the data is the same size
