@@ -34,7 +34,7 @@ nval = size(hvl, 2);
 
 %% pull the null distribution if it exists
 
-if isfield(cca.cca, 'hocorrs_null')
+if ~isempty(cca.cca.hocorrs_null)
     
     % preallocate null shape
     lbub = nan(nval, 2);
@@ -54,7 +54,7 @@ figure;
 subplot(2, 1, 1); hold on;
 
 % if the null exists, shade in the background
-if isfield(cca.cca, 'hocorrs_null')
+if ~isempty(cca.cca.hocorrs_null)
     nll = fill([ 1:nval, fliplr(1:nval) ], [ lbub(:, 1)', lbub(:, 2)' ], [ .75 .75 .75 ]);
     nll.FaceAlpha = 0.5;
 end

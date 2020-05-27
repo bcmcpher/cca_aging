@@ -323,7 +323,7 @@ for sp = 1:3
         pty = xyi(ii, 2);
         
         % pull the values
-        cval = 1-zdat(ptx, pty);
+        cval = 1-mcDat(ptx, pty);
         dval = 1-mdDat(ptx, pty);
         
         % plot different colors if x/y are within/between brain/behavior
@@ -378,6 +378,10 @@ end
 
 % 
 [ {yeoLabs.yeo7Names{yeoLabs.yeo7}}' ];
+
+%% plot rank order of modules from chord plot w/ readable names / numbers
+
+
 
 %% get new parameters of trends across variables
 
