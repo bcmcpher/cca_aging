@@ -61,7 +61,7 @@ for ii = 1:size(xy, 1)
     
     % find values - correlation and dissimilarity; others?
     cval = corr(z(xy(ii, 1), :)', z(xy(ii, 2), :)');
-    dval = 1 - abs(corr(z(xy(ii, 1), :)', z(xy(ii, 2), :)'));
+    dval = 1 - abs(cval);
     
     % store in matrices
     cmat(xy(ii, 1), xy(ii, 2)) = cval;

@@ -1,6 +1,6 @@
 function [ n, fh ] = plotVarHist(vals, nbin, name)
 %[ n, fh ] = plotVarHist(val, nbin, name);
-%   Plot a histogram as a line for a provided variable. Also returns the
+%   Plot a histogram as a density line for a provided variable. Also returns the
 %   count for the requested number of bins.
 %
 %   INPUTS:

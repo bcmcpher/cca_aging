@@ -14,6 +14,8 @@ function [ out, fh ] = plotVarByDeciles(x, age, model, vname)
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
 
+% ADD OPTION TO PREDICT ON AGE DIRECTLY, NOT JUST BINS
+
 % create 7 decile categories
 abin = 18:10:89;
 abin(8) = abin(8) + 1;

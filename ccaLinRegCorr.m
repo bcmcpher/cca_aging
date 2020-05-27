@@ -19,14 +19,6 @@ function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm, full)
 %
 
 % adjusted r2 outs - dropped b/c odd behavior: , ar2, apval, anull
-%
-% mean((x-mean(x)).*(y-mean(y)).*(age-mean(age))) / (std(x).*std(y).*std(age))
-% Degree1: 0.3888; Degree1: 0.3505
-% BTW1: 0.3106; BTW2: 0.1692
-%
-
-% load data
-%load([ 'camcan_594_' stem '_cca.mat' ], 'grotU', 'grotV');
 
 if(~exist('full', 'var') || isempty(full))
     full = false;
@@ -40,9 +32,6 @@ else
     grotV = cca.dat2.factor;
 end
 
-% load age
-%load('/N/dc2/projects/lifebid/HCP/Brent/camcan/canoncorr_analysis_full_data.mat', 'age');
-
 % grab data
 x = grotU(:, ccf); 
 y = grotV(:, ccf);
@@ -54,7 +43,7 @@ z = [ x, y ];
 out = fitlm(z, age);
 
 % return multiway correlation
-r2 = sqrt(out.Rsquared.Ordinary);
+r = sqrt(out.Rsquared.Ordinary);
 %ar2 = sqrt(out.Rsquared.Adjusted);
 
 %% perform a permuatation test to determine R2 significance
@@ -66,7 +55,7 @@ nsub = size(z, 1);
 % for every permutation
 for ii = 1:Nperm
     
-    % if I resort age as well, I can get a resampled mean + sd for the R2
+    % if I resort age as well, I can get a resampled mean + sd for the R
     % if I only resort the data, I get the null distribution and find the p-value
     
     % grab a random set of subjects w/ replacement
@@ -80,13 +69,13 @@ for ii = 1:Nperm
     tout2 = fitlm(rdat, age(rsub));    
     
     % catch relevant output
-    null(ii, 1) = sqrt(tout1.Rsquared.Ordinary); % this is R, not R2 ???
+    null(ii, 1) = sqrt(tout1.Rsquared.Ordinary); % this is R, not R2
     null(ii, 2) = sqrt(tout2.Rsquared.Ordinary);
     
 end
 
-% determine is R2 is signifcant
-pval = 1 - (sum(null(:, 1) < r2) / Nperm);
+% determine if R is signifcant
+pval = 1 - (sum(null(:, 1) < r) / Nperm);
 rr = mean(null(:, 2));
 rse = std(null(:, 2));
 

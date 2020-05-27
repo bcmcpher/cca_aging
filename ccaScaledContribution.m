@@ -1,7 +1,7 @@
 function [ fh, out ] = ccaScaledContribution(cca, type, ccf, si, labels, summary, show)
 %[ fh ] = ccaScaledContribution(dat, cca, type, si);
 %   Take a CCA output and provide indices for how to sort variables from a 
-%   specific dataset into a scaled contribution from each axis.
+%   specific dataset into a scaled contribution from each domain in the datasets.
 %
 %   INPUTS:
 %       cca     - fit cca object

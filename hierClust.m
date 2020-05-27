@@ -2,6 +2,10 @@ function [ T, coph, copd, inco, fh ] = hierClust(data, cval, dist, lmeth, depth)
 %UNTITLED Summary of this function goes here
 %   Detailed explanation goes here
 
+% NOT WORKING, BUT USEFUL CODE FOR HIERARCHICAL CLUSTERS
+
+% data is loadings or factors (?)
+
 % dist: 'euclidean', 'squaredeuclidean', 'seuclidean', 'cityblock',
 % 'minkowski', 'chebychev', 'mahalanobis', 'cosine', 'correlation',
 % 'spearman', 'hamming', 'jaccard'
@@ -14,13 +18,17 @@ function [ T, coph, copd, inco, fh ] = hierClust(data, cval, dist, lmeth, depth)
 
 % lmeth: 'single', 'complete', 'average', 'weighted', 'centroid', 'median', 'ward'
 % are all slightly different
-% warning, don't use: 'centroid', 'meadian'
+% warning, don't use: 'centroid', 'median'
 
 % matlab hierarchical clustering based on distance between all variables
 % split into brain / behavior to ID clusters separately...
 % https://www.mathworks.com/help/stats/hierarchical-clustering.html
 
 % parse defualt arguments
+if(~exist('cval', 'var') || isempty(cval))
+    cval = .8;
+end
+
 if(~exist('dist', 'var') || isempty(dist))
     dist = 'euclidean';
 end
@@ -31,10 +39,6 @@ end
 
 if(~exist('depth', 'var') || isempty(depth))
     depth = 2;
-end
-
-if(~exist('cval', 'var') || isempty(cval))
-    cval = .8;
 end
 
 % determine size of data
