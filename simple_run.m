@@ -110,7 +110,7 @@ set(gca, 'XTick', 1:size(mdDat, 1), 'XTickLabels', mdLabs, 'XTickLabelRotation',
     'YTick', 1:size(mdDat, 1), 'YTickLabels', mdLabs);
 %print([ outdir stem 'cca_dissimilarity_modules.eps' ], '-painters', '-depsc');
 
-set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 .35 ]);
+set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 .85 ]);
 set(gca, 'XLim', [ 0.5 10.5 ], 'YLim', [ 10.5 17.5 ]); caxis([ 0 1 ]);
 %print([ outdir stem 'cca_dissimilarity_brnxbeh_modules.eps' ], '-painters', '-depsc');
 %close all;
