@@ -433,6 +433,63 @@ std(out(sp, :), [], 1)
 mean(out(~sp, :))
 std(out(~sp, :), [], 1)
 
+%% Fig2 plot showing corrs w/ and w/o age for full and xval models
+
+m1 = load('sub_pca_brain_38_behavior_40_15k_10k_boot.mat');
+m2 = load('sub_pca_brain_38_behavior_40_15k_10k_boot_m2.mat');
+
+figure('Position', [ 680 325 200 600]); hold on;
+
+plot(1, m1.cca.full.grotR(1), 'o', 'MarkerFaceColor', 'red', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot([ 2, 2 ], [ 3*m1.cca.cca.hocorrs(1)+m1.cca.cca.hocorrs_se(1) 3*m1.cca.cca.hocorrs(1)-m1.cca.cca.hocorrs_se(1) ], 'color', 'black');
+plot(2, m2.cca.full.grotR(1), 'o', 'MarkerFaceColor', 'blue', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot(3, m1.cca.cca.hocorrs(1), 'o', 'MarkerFaceColor', 'red', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot([ 4, 4 ], [ 3*m2.cca.cca.hocorrs(1)+m2.cca.cca.hocorrs_se(1) 3*m2.cca.cca.hocorrs(1)-m2.cca.cca.hocorrs_se(1) ], 'color', 'black');
+plot(4, m2.cca.cca.hocorrs(1), 'o', 'MarkerFaceColor', 'blue', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+set(gca, 'Xlim', [ 0.5 4.5 ], 'Ylim', [ 0 1 ]);
+print('figs/panels_20200728/m1_vs_m2_ca1_corr.eps', '-painters', '-depsc');
+
+%% Fig2 plot showing corrs w/ and w/o age for full and xval models
+
+% load the models
+m1 = load('sub_pca_brain_38_behavior_40_15k_10k_boot.mat');
+m2 = load('sub_pca_brain_38_behavior_40_15k_10k_boot_m2.mat');
+
+% compute the corr +/- with age
+[ p1, se1 ] = ccaLinRegCorr(m1.cca, 1, age, 1000);
+[ p2, se2 ] = ccaLinRegCorr(m2.cca, 1, age, 1000, true);
+[ p3, se3 ] = ccaLinRegCorr(m1.cca, 1, age, 1000);
+[ p4, se4 ] = ccaLinRegCorr(m2.cca, 1, age, 1000, true);
+
+figure('Position', [ 680 325 200 600]); hold on;
+
+plot([ 1, 1 ], [ p1+(3*se1) p1-(3*se1) ], 'color', 'black');
+plot(1, p1, 'o', 'MarkerFaceColor', 'red', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot([ 2, 2 ], [ p2+(3*se2) p2-(3*se2) ], 'color', 'black');
+plot(2, p2, 'o', 'MarkerFaceColor', 'blue', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot([ 3, 3 ], [ p3+(3*se3) p3-(3*se3) ], 'color', 'black');
+plot(3, p3, 'o', 'MarkerFaceColor', 'red', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+plot([ 4, 4 ], [ p4+(3*se4) p4-(3*se4) ], 'color', 'black');
+plot(4, p4, 'o', 'MarkerFaceColor', 'blue', ...
+     'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 10);
+
+set(gca, 'Xlim', [ 0.5 4.5 ], 'Ylim', [ 0 1 ]);
+print('figs/panels_20200728/m1_vs_m2_ca1_age.eps', '-painters', '-depsc');
+
 %% plot null bootstrap around corr
 
 % preallocate null shape

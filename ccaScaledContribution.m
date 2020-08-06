@@ -8,8 +8,8 @@ function [ fh, out ] = ccaScaledContribution(cca, type, ccf, si, labels, summary
 %       type    - 'brain' or 'behavior' - identify the data to summarize
 %       ccf     - identify the axis from the CCA to inspect
 %       si      - a [1 x var] vector assigning variables to domains for summary
-%       labels  - labels for diplay. Must correpond to the ascending order
-%                 of the values provided in si.
+%       labels  - a [1 x labels] cell arrary of names for modules. Must correspond 
+%                 to the ascending order of the values provided in si.
 %       summary - the summary operation to perform on the data. Default 'mean'.
 %                 Also allows: 'sum', 'std', 'median'  
 %       show    - optionally plot a point behind the scaled text for the
