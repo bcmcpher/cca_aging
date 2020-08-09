@@ -13,9 +13,6 @@ m2R = zeros(Nkeep, Nperm);
 m2U = zeros(Nsub, Nkeep, Nperm);
 m2V = zeros(Nsub, Nkeep, Nperm);
 
-%    grotAtr = zeros(Nnet, Nkeep, Nperm);
-%    grotBtr = zeros(Nvar, Nkeep, Nperm);
-
 % predefine permutation sets, add 1 to Nperm b/c the first one isn't randomized
 PAPset = palm_quickperms([], ones(Nsub, 1), Nperm+1);
 
@@ -64,7 +61,7 @@ end
 
 zzz = nan(Nkeep, 3);
 for ii = 1:Nkeep
-    [ zzz(, ~, zzz(ii) ] = ccaLinRegCorr(m2.cca, ii, age, 1000);
+    [ zzz(ii,1), zzz(ii,2), zzz(ii,3) ] = ccaLinRegCorr(m2.cca, ii, age, 1000);
 end
 mean(zzz(2:end))
 
@@ -86,4 +83,42 @@ for ii = 1:Nkeep
     
 end
 
+%% 100x100 pca
 
+Nkeep = 100;
+
+% preallocate output
+m0R = zeros(Nkeep, Nperm);
+m0U = zeros(Nsub, Nkeep, Nperm);
+m0V = zeros(Nsub, Nkeep, Nperm);
+
+% for every permutation
+for ii = 1:Nperm
+    
+    % get cross-validated loadings for each permutation
+    % use ii+1 to skip first, original ordering of data, only use random sortings
+    [ ~, ~, ~, m0U(:,:,ii) ] = canoncorr(dat.dat1.uu1, dat.dat2.uu2(PAPset(:, ii+1), :));
+    [ ~, ~, ~, ~, m0V(:,:,ii) ] = canoncorr(dat.dat1.uu1(PAPset(:, ii+1), :), dat.dat2.uu2);
+    
+    % for every cc
+    for jj = 1:Nkeep
+
+        % get the corr between the null splits
+        m0R(jj, ii) = corr(m0U(:,jj,ii), m0V(:,jj,ii));
+        
+    end
+end
+
+% direct estimation of pval
+m0pval = nan(Nkeep, 1);
+
+% for every CA, catch the pvalue
+for ii = 1:Nkeep
+    m0pval(ii) = sum(m0R(ii,:) > cca.full.grotR(ii)) / Nperm;
+end
+
+% estimate the correlation with age
+zzz = nan(Nkeep, 3);
+for ii = 1:Nkeep
+    [ zzz(ii,1), zzz(ii,2), zzz(ii,3) ] = ccaLinRegCorr(cca, ii, age, 1000, true);
+end
