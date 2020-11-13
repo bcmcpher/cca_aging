@@ -1,4 +1,4 @@
-function [ fh ] = ccaPlotCorrs(cca, age, nse, nperm)
+function [ pval, fh ] = ccaPlotCorrs(cca, age, nse, nperm)
 %[ fh ] = ccaPlotCorrs(cca);
 %
 %   Plot the cross-validated correlation and error bars for every estimated
@@ -32,6 +32,9 @@ hse = cca.cca.hocorrs_se;
 % get the number of correlations
 nval = size(hvl, 2);
 
+% preallocate pvalues
+pval = nan(nval, 2);
+
 %% pull the null distribution if it exists
 
 if ~isempty(cca.cca.hocorrs_null)
@@ -43,6 +46,9 @@ if ~isempty(cca.cca.hocorrs_null)
     for ii = 1:nval
         lbub(ii, :) = prctile(squeeze(cca.cca.hocorrs_null(1, ii, :)), [ 5 95 ]);
     end
+    
+    % catch null pvals
+    pval(:, 1) = cca.cca.pval;
     
 end
 
@@ -86,7 +92,8 @@ disp('Creating estimate of canonical axes with age...');
 
 % pull the null distribution for every age
 for ii = 1:nval
-    [ hpt(ii), heb(ii), ~, hnl ] = ccaLinRegCorr(cca, ii, age, nperm);
+    [ hpt(ii), heb(ii), tpv, hnl ] = ccaLinRegCorr(cca, ii, age, nperm);
+    pval(ii, 2) = tpv;
     anl(ii, :) = prctile(squeeze(hnl(:, 1)), [ 5 95 ]);
 end
 
