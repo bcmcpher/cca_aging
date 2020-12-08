@@ -54,7 +54,7 @@ end
 
 %% make the plot
 
-figure; 
+fh = figure(); 
 
 % top panel
 subplot(2, 1, 1); hold on;
@@ -83,6 +83,7 @@ set(gca, 'XTick', []);
 title('Correlation Between Brain and Behavior');
 xlabel('Canonical Correlations');
 ylabel('Correlation');
+set(gca, 'Ylim', [ -0.2 0.6 ]);
 hold off
 
 % bottom panel
@@ -121,6 +122,7 @@ set(gca, 'XTick', []);
 title('Correlation Between Age and Canonical Axis');
 xlabel('Canonical Correlations');
 ylabel('Correlation');
+set(gca, 'Ylim', [ -0.2 0.8 ]);
 hold off
 
 end
