@@ -1,4 +1,4 @@
-function [ out, fh ] = ccaPlotRankedTrends(dat, cca, age, mod, type, ccf, plotType, nshow)
+function [ out, fh ] = ccaPlotRankedTrendsRC(dat, cca, age, mod, type, ccf, plotType, nshow, rc)
 %[ out, fh ] = ccaPlotRankedTrends(dat, cca, age, mod, type, ccf, nshow);
 %   Estimate and plot the ranked trends of the requested data sets as a
 %   line plot with the labels, indicating the highest / lowest loading
@@ -24,7 +24,7 @@ function [ out, fh ] = ccaPlotRankedTrends(dat, cca, age, mod, type, ccf, plotTy
 
 % determine default plot type
 if(~exist('plotType', 'var') || isempty(plotType))
-    plotType = 'lines';
+    plotType = 'points';
 end
 
 % determine default nshow
@@ -51,23 +51,23 @@ if strcmp(mod, 'brain')
     
 end
 
-if strcmp(mod, 'behavior')
-    
-    % grab names / postitive logical of var w/ axis
-    varLabs = dat.dat2.label;
-    valp = cca.full.fgrotBBp;
-    
-    % grab data / variability
-    if strcmp(type, 'load')
-        vals = cca.dat2.loading;
-        vars = cca.dat2.loading_se;
-    end
-    
-    if strcmp(type, 'slope')
-        [ vals, ~, vars ] = ccaTrendByDecile(dat.dat2.nrm, age);
-    end       
-    
-end
+% if strcmp(mod, 'behavior')
+%     
+%     % grab names / postitive logical of var w/ axis
+%     varLabs = dat.dat2.label;
+%     valp = cca.full.fgrotBBp;
+%     
+%     % grab data / variability
+%     if strcmp(type, 'load')
+%         vals = cca.dat2.loading;
+%         vars = cca.dat2.loading_se;
+%     end
+%     
+%     if strcmp(type, 'slope')
+%         [ vals, ~, vars ] = ccaTrendByDecile(dat.dat2.nrm, age);
+%     end       
+%     
+% end
 
 %% extract and sort weights
 
@@ -114,6 +114,7 @@ sNam = varLabs(wi);
 sErr = sder(wi);
 sSig = sig(wi);
 sPos = valp(wi);
+sRC = rc(wi);
 
 % if nshow is empty, show all of them
 if nshow < 0
@@ -122,6 +123,7 @@ if nshow < 0
     showPos = sPos;
     showNam = sNam;
     showSig = sSig;
+    showRC = sRC;
     nplot = size(sWgh, 1);
 else
     % grab the nshow top / bottom to plot
@@ -130,6 +132,7 @@ else
     showPos = sPos([ 1:nshow, end-(nshow-1):end ]);
     showNam = sNam([ 1:nshow, end-(nshow-1):end ]);
     showSig = sSig([ 1:nshow, end-(nshow-1):end ]);
+    showRC = sRC([ 1:nshow, end-(nshow-1):end ]);
     nplot = 2*nshow;
 end
 
@@ -140,19 +143,25 @@ fh = figure('Position', [ 150 600 1300 420 ]); hold on;
 % for values to plot
 for ii = 1:nplot
     
-    % determine the color
-    if showVal(ii) > 0
-        if showSig(ii) == 1
-            color = 'blue';
-        else
-            color = 'cyan';
-        end
-    else % for the negative values
-        if showSig(ii) == 1
-            color = 'red';
-        else
-            color = 'magenta';
-        end
+%     % determine the color
+%     if showVal(ii) > 0
+%         if showSig(ii) == 1
+%             color = 'blue';
+%         else
+%             color = 'cyan';
+%         end
+%     else % for the negative values
+%         if showSig(ii) == 1
+%             color = 'red';
+%         else
+%             color = 'magenta';
+%         end
+%     end
+    
+    if showRC(ii) == 2
+        color = [ 0.1 0.2 0.7 ];
+    else
+        color = [ 0.7 0.7 0.7 ];
     end
     
     % assign +/- sign to label for correlation
@@ -168,7 +177,7 @@ for ii = 1:nplot
             
             plot([ (showVal(ii) - showErr(ii)) (showVal(ii) + showErr(ii)) ], [ ii ii ], 'color', 'black');
             plot(showVal(ii), ii, 'o', 'MarkerFaceColor', color, ...
-                 'MarkerEdgeColor', 'k', 'LineWidth', 0.75, 'MarkerSize', 6);
+                 'MarkerEdgeColor', 'none', 'LineWidth', 0.75, 'MarkerSize', 6);
             text(mnb, ii, pNam, 'HorizontalAlignment', 'right', 'Interpreter', 'none');
             
         otherwise
@@ -190,7 +199,7 @@ title([ 'Top and Bottom ' num2str(nshow) ' Contributing Weights to CCA' ]);
 
 hold off
 
-% return original order of weights w/ null sig test
-out = [ sWgh sSig ];
+% return sorted order of weights w/ null sig test
+out = flipud([ sWgh sErr sSig sRC ]);
 
 end

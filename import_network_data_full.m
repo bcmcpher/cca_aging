@@ -74,7 +74,7 @@ for ii = 1:size(mats, 1)
     %pgrk(ii, :) = pagerank_centrality(tmat, 0.85);
     
     % compute the full set
-    [ glob{ii}, node{ii}, nets{ii} ] = fnNetworkStats(tmat);
+    %[ glob{ii}, node{ii}, nets{ii} ] = fnNetworkStats(tmat);
     
 end
 

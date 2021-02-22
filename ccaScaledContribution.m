@@ -40,7 +40,7 @@ end
 % pull the unique indices
 ui  = unique(si);
 
-if size(ui, 1) ~= size(labels, 1)
+if size(ui, 1) ~= length(labels)
     error('There are a different number of labels in ''si'' than in ''labels''.');
 end
 
