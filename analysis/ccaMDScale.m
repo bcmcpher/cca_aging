@@ -2,6 +2,8 @@ function [ mds, cmd, mderror, eigvals, neigval, fh ] = ccaMDScale(mat, ndim)
 %[ mds, cmd, mderror, eigvals, neigvals, fh ] = ccaMDScale(mat, ndim);
 %   This function performs a classic and non-metric multidimensional
 %   scaling on an input matrix to a user specified number of dimensions.
+%
+% THIS IS NOT USED IN THE PAPER - IT WAS AN EXPLORATORY IDEA AND EASY ENOUGH TO MAKE A FXN
 %   
 %   INPUTS:
 %       mat  - nxn square input matrix of distances / dissimilarities b/w all values
