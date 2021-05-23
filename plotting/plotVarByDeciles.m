@@ -129,5 +129,6 @@ out.lcoeff = lcoeff; % most relevant value
 out.R2 = R2;
 out.AIC = AIC;
 out.AICc = AICc;
+out.data = data;
 
 end

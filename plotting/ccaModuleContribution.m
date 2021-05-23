@@ -261,6 +261,10 @@ set(gca, 'XLim', [ 0 3 ], 'YLim', [ 0.5 ndmn+.5 ], ...
 hold off;
 
 % simple debugging output
-out = [ vprop pv nv ];
+try % lazy fix b/w brain and behavior
+    out = [ vprop pv nv ];
+catch
+    out = [ vprop' pv nv ];
+end
 
 end
