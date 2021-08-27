@@ -164,6 +164,7 @@ ccaPlotRankedTrendsRC(dat,cca,age,'brain','load',1,'points',-1,zi);
 
 % get the average bins for RC
 fig4b = ccaModuleContribution(cca, 'brain', 1, zi, {'Periphery', 'RC'});
+fig4bnew = ccaModuleContributionViolin(cca, 'brain', 1, zi, {'Periphery', 'RC'});
 
 % spearman rank correlation
 corr(deg', cca.dat1.loading(:,1),'type','spearman')
