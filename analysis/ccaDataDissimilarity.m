@@ -1,5 +1,5 @@
 function [ dmat, cmat ] = ccaDataDissimilarity(dat, val)
-%[ dmat, cmat ] = ccaDataDissimilarity(dat);
+%[ dmat, cmat ] = ccaDataDissimilarity(dat, val);
 %   Create a dissimilarity matrix between all variables in both datasets.
 %
 %   INPUTS:

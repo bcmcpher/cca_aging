@@ -12,8 +12,8 @@ function [ out, fh ] = ccaModuleContribution(cca, type, ccf, si, labels)
 %                 to the ascending order of the values provided in si.
 %
 %   OUTPUTS:
-%       fh  - the figure handle for the requested plot
 %       out - the data summarized in the figure
+%       fh  - the figure handle for the requested plot
 %
 % Copyright (c) Brent McPherson (Indiana University), 2020. All rights reserved.
 %

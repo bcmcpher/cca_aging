@@ -2,13 +2,8 @@ function [ fh ] = ccaPermSigTestPlot(cca, ccf)
 %[ fh ] = ccaPermSigTestPlot(grotU, grotV, grotRp, ccf);
 %   Plot all canonical correlations to visualize the relative strengths
 %
-%   The inputs will change when the CCA structure is defined
-%
 %   INPUTS:
 %       cca - the values from a CCA analysis
-%       %   grotU  - first canonical scaled dataset
-%       %   grotV  - second canonical scaled dataset
-%       %   grotRp - a vecor of CCA corrlations
 %       ccf - the canonical correlation to emphasize and print
 %   OUTPUTS:
 %       fh - figure handle of the requested plot

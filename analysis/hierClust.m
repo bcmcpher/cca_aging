@@ -1,6 +1,9 @@
 function [ T, coph, copd, inco, fh ] = hierClust(data, cval, dist, lmeth, depth)
-%UNTITLED Summary of this function goes here
-%   Detailed explanation goes here
+%[ T, coph, copd, inco, fh ] = hierClust(data, cval, dist, lmeth, depth);
+%   Estimate and plot a useful hierarchical clustering based on MATLAB built in matrix operations.
+%
+%   THIS WAS NOT USED IN THE PAPER. IT IS INCOMPLETE.
+%
 
 % NOT WORKING, BUT USEFUL CODE FOR HIERARCHICAL CLUSTERS
 

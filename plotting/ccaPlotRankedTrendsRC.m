@@ -1,8 +1,11 @@
 function [ out, fh ] = ccaPlotRankedTrendsRC(dat, cca, age, mod, type, ccf, plotType, nshow, rc)
-%[ out, fh ] = ccaPlotRankedTrends(dat, cca, age, mod, type, ccf, nshow);
+%[ out, fh ] = ccaPlotRankedTrendsRC(dat, cca, age, mod, type, ccf, nshow);
 %   Estimate and plot the ranked trends of the requested data sets as a
 %   line plot with the labels, indicating the highest / lowest loading
 %   values.
+%
+%   This variation assumes the 'brain' data is passed and values to display
+%   the rich club. Color assignment of the points is done with vector 'rc'.
 %
 %   INPUTS:
 %       dat   - the preprocessed data from the CCA
@@ -13,6 +16,7 @@ function [ out, fh ] = ccaPlotRankedTrendsRC(dat, cca, age, mod, type, ccf, plot
 %       ccf   - the cc to plot data from
 %       plotType - either 'lines' or 'points'; determines how data is displayed
 %       nshow - the number of loadings to show on both top and bottom.
+%       rc    - the vector of node assignments to rich club (2) or peripery (1).
 %   OUTPUTS:
 %       out - the vector of slopes/weights  and 1/0 significance estimated for the plot
 %       fh  - the figure handle of the created images

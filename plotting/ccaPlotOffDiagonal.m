@@ -3,13 +3,8 @@ function [ fh ] = ccaPlotOffDiagonal(cca)
 %   Plot a hierarchical cluster on each dataset and compare the
 %   relationship between them within a CCA.
 %
-%   Can this be built into the CCA structure?
-%
 %   INPUTS:
 %       cca - output from the CCA for plotting the data
-%       %   dat1 - dissimilarity / distance between vars in first data set
-%       %   dat2 - dissimilarity / distance between vars in second data set
-%       %   offd - dissimilarity / distance matrix b/w dat1 and dat2 (dat1 x dat2)
 %   OUTPUTS:
 %       fh - figure handle of the plot
 %

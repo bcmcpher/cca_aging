@@ -1,6 +1,6 @@
 function [ fh ] = plotViolinByDeciles(x, age, out)
-%[ lcoeff, fh ] = plotVarByDeciles(x, age, vname);
-%   Plot a point for each decile (decade) of age in the dataset.
+%[ lcoeff, fh ] = plotViolinByDeciles(x, age, vname);
+%   Plot a point for each decile (decade) of age in the dataset while showing all observations.
 %
 %   INPUTS:
 %       x - subj x 1 vector of data to plot

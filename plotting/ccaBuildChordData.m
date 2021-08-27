@@ -1,5 +1,5 @@
 function [ val, out ] = ccaBuildChordData(mat, fname, thr, flip)
-%[ out ] = ccaBuildChordData(mat);
+%[ val, out ] = ccaBuildChordData(mat);
 %   This will take the m x n off diagonal matrix mat and create a scaled
 %   version for creating an axe / bat / directed chord plot in d3.
 %
@@ -10,6 +10,7 @@ function [ val, out ] = ccaBuildChordData(mat, fname, thr, flip)
 %       flip  - (default) true / false; perform 1-mat to scale lowest
 %               dissimilarity value as thickest chord in plot.
 %   OUTPUTS:
+%       val - the matrix that is written out and passed to the javascript plot fxn
 %       out - the created matrix with the correct space / scaling added
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.

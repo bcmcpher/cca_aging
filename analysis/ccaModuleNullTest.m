@@ -3,7 +3,7 @@ function [ pval, tdiff, ndiff ] = ccaModuleNullTest(mat1, mat2, nperm)
 %   Perform a non-parametric test between the upper diagonal of 2 matrices
 %   to determine if they are significantly different from one another.
 %
-%  THIS WAS NOT USED IN PAPER - MAY STILL BE INCOMPLETE
+%  THIS WAS NOT USED IN PAPER - THIS IS STILL INCOMPLETE
 %
 %   INPUTS:
 %       mat1  - the first symmetric data matrix

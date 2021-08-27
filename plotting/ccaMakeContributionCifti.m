@@ -1,6 +1,8 @@
 function [] = ccaMakeContributionCifti(cca, ccf)
-%UNTITLED8 Summary of this function goes here
-%   Detailed explanation goes here
+%[] = ccaMakeContributionCifti(cca, ccf);
+%   This loops over and loads the surfaces from Glasser 2016 and replaces the label 
+%       index with the requested value stored in the CCA. This was used to create the
+%       figures. This needs to be modified to point to the surfaces used in new studies.
 
 %% OLD
 

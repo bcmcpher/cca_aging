@@ -9,6 +9,8 @@ function [ bmat ] = ccaEdgeWeights(grotAAd, ccf)
 %   OUTPUTS:
 %       bmat - the edge-wise contribution matrix that was requested
 %
+%  *This size is hard coded to be greater than the number of nodes. This may not be true in a coarse parcellation.
+%
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
 

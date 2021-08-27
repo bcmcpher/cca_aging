@@ -3,12 +3,8 @@ function [ fh ] = ccaPlotAxisCon(cca, ccf, nage, cmap, ebars, full)
 %   Plot the CCA of a specific factor, using a color mapped age value for
 %   each point.
 %
-%   The inputs of this data fxn will change when CCA object is defined.
-%
 %   INPUTS:
 %       cca - CCA analysis structure containing loadings
-%       %   grotU - first cca scaled dataset
-%       %   grotV - second cca scaled dataset
 %       ccf   - the cc to plot
 %       nage  - scaled age vector to correctly assign colors
 %       cmap  - color map scaled to align w/ nage for plotting

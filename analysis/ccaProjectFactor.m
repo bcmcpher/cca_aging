@@ -7,8 +7,6 @@ function [ mag, sd, fh ] = ccaProjectFactor(cca, ccf, age, Nperm)
 %   
 %   INPUTS:
 %       cca   - contains CCA variables for plotting
-%       %   grotU - first CCA scaled dataset
-%       %   grotV - second CCA scaled dataset
 %       ccf   - the CC factor to project
 %       age   - vector of subject ages; holdout variable to determine prediction
 %       Nperm - number of permutations for a bootstrap estimate of sd

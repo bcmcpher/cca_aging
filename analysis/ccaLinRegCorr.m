@@ -1,5 +1,5 @@
 function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm, full)
-%[ r2, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm);
+%[ r2, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm, full);
 %   Estimate a multiway correlation and run a permutation test to determine
 %   it's significance.
 %   
@@ -17,8 +17,6 @@ function [ rr, rse, pval, null ] = ccaLinRegCorr(cca, ccf, age, Nperm, full)
 %
 % Copyright (c) Brent McPherson (Indiana University), 2019. All rights reserved.
 %
-
-% adjusted r2 outs - dropped b/c odd behavior: , ar2, apval, anull
 
 if(~exist('full', 'var') || isempty(full))
     full = false;

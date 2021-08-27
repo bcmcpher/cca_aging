@@ -6,6 +6,8 @@ function [ fh ] = ccaPcaVarianceExplained(inp, Ncca, label)
 %
 % The inputs will change when cca structure is defined
 %
+% THIS IS NOT USED / REPORTED IN THE PAPER. IT MAY BE USEFUL.
+%
 %   INPUTS:
 %       inp   - dat.dat?.ss?; which PCA to inspect
 %       Ncca  - the number of significant CCA components; draws a line to
